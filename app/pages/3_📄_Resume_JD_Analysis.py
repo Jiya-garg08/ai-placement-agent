@@ -161,7 +161,7 @@ col_left, col_right = st.columns(2)
 
 with col_left:
     st.markdown("#### 1. Candidate Resume")
-    use_sample_resume = st.checkbox("Use Sample Resume (Jiya Garg)", value=True)
+    use_sample_resume = st.checkbox("Use Built-in Sample Resume", value=False)
     
     uploaded_file = st.file_uploader(
         "Upload Resume from ANY field (PDF, DOCX, or TXT)",
@@ -170,7 +170,7 @@ with col_left:
     )
 
     if not use_sample_resume and not uploaded_file:
-        st.info("Upload a resume file above or check 'Use Sample Resume'. Supports all industries: Tech, Product, Marketing, Finance, HR, Design, Operations.")
+        st.info("Upload your resume file above, or check 'Use Built-in Sample Resume'. Supports all industries: Tech, Product, Marketing, Finance, HR, Design, Operations.")
 
 with col_right:
     st.markdown("#### 2. Target Job Description (JD)")
@@ -189,12 +189,14 @@ analyze_btn = st.button("🚀 Analyze Resume & JD Alignment", use_container_widt
 if analyze_btn or "analysis_result" in st.session_state:
     if analyze_btn:
         with st.spinner("Executing dual-stream parsing and PII redaction..."):
-            # 1. Parse Resume
-            if use_sample_resume or not uploaded_file:
-                stream = io.BytesIO(SAMPLE_RESUME_TEXT.encode("utf-8"))
-                parsed_resume = ResumeService.parse_resume(stream, "sample_resume.txt")
+            # 1. Parse Resume (prioritize user upload)
+            if uploaded_file and not use_sample_resume:
+                file_name = uploaded_file.name
+                parsed_resume = ResumeService.parse_resume(uploaded_file, file_name)
             else:
-                parsed_resume = ResumeService.parse_resume(uploaded_file, uploaded_file.name)
+                file_name = "sample_resume.txt"
+                stream = io.BytesIO(SAMPLE_RESUME_TEXT.encode("utf-8"))
+                parsed_resume = ResumeService.parse_resume(stream, file_name)
 
             # 2. Parse JD
             parsed_jd = JobDescriptionParser.parse(jd_input_text)
@@ -217,6 +219,51 @@ if analyze_btn or "analysis_result" in st.session_state:
             req_score = (len(matched_required) / total_req) * 80.0
             pref_score = (len(matched_preferred) / max(len(preferred_skills), 1)) * 20.0 if preferred_skills else 20.0
             total_match_score = round(min(req_score + pref_score, 100.0), 1)
+
+            # 5. Persist to SQLite Database for Active Student
+            db_save = SessionLocal()
+            try:
+                from database.models.student import User
+                existing_res = db_save.query(Resume).filter_by(profile_id=student_id).first()
+                if not existing_res:
+                    existing_res = Resume(profile_id=student_id, file_name=file_name, raw_text="", redacted_text="")
+                    db_save.add(existing_res)
+
+                existing_res.file_name = file_name
+                existing_res.raw_text = parsed_resume.raw_text
+                existing_res.redacted_text = parsed_resume.redacted_text
+                existing_res.extracted_skills = extracted_resume.skills
+                existing_res.extracted_education = [e.model_dump() for e in extracted_resume.education]
+                existing_res.extracted_experience = [e.model_dump() for e in extracted_resume.experience]
+                existing_res.extracted_projects = [p.model_dump() for p in extracted_resume.projects]
+                existing_res.summary = extracted_resume.summary
+
+                existing_jd = db_save.query(JobDescription).filter_by(profile_id=student_id).first()
+                if not existing_jd:
+                    existing_jd = JobDescription(profile_id=student_id, raw_text="")
+                    db_save.add(existing_jd)
+
+                existing_jd.role_title = parsed_jd.role_title
+                existing_jd.experience_level = parsed_jd.experience_level
+                existing_jd.required_skills = parsed_jd.required_skills
+                existing_jd.preferred_skills = parsed_jd.preferred_skills
+                existing_jd.domain_keywords = parsed_jd.domain_keywords
+                existing_jd.raw_text = jd_input_text
+
+                prof_rec = db_save.query(StudentProfile).filter_by(id=student_id).first()
+                if prof_rec:
+                    if extracted_resume.candidate_name and extracted_resume.candidate_name not in ("Candidate", ""):
+                        user_rec = db_save.query(User).filter_by(id=prof_rec.user_id).first()
+                        if user_rec:
+                            user_rec.name = extracted_resume.candidate_name
+                    if extracted_resume.skills:
+                        prof_rec.primary_skills = extracted_resume.skills
+                    if parsed_jd.role_title and parsed_jd.role_title != "Professional Role":
+                        prof_rec.target_role = parsed_jd.role_title
+
+                db_save.commit()
+            finally:
+                db_save.close()
 
             st.session_state["analysis_result"] = {
                 "parsed_resume": parsed_resume,
