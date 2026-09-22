@@ -184,6 +184,9 @@ with col_right:
     else:
         jd_input_text = st.text_area("Paste Target Job Description (Any Domain)", height=240, placeholder="Paste JD requirements from any field or industry here...")
 
+if "analysis_result" in st.session_state and st.session_state["analysis_result"].get("student_id") != student_id:
+    del st.session_state["analysis_result"]
+
 analyze_btn = st.button("🚀 Analyze Resume & JD Alignment", use_container_width=True, type="primary")
 
 if analyze_btn or "analysis_result" in st.session_state:
@@ -261,11 +264,31 @@ if analyze_btn or "analysis_result" in st.session_state:
                     if parsed_jd.role_title and parsed_jd.role_title != "Professional Role":
                         prof_rec.target_role = parsed_jd.role_title
 
+                from database.models.skill_gap import SkillGap
+                from services.next_action_service import NextActionService
+
+                existing_gap = db_save.query(SkillGap).filter_by(profile_id=student_id).first()
+                if not existing_gap:
+                    existing_gap = SkillGap(profile_id=student_id)
+                    db_save.add(existing_gap)
+                existing_gap.strong_skills = matched_required + matched_preferred
+                existing_gap.weak_skills = []
+                existing_gap.missing_skills = missing_required + missing_preferred
+                existing_gap.overall_readiness_score = total_match_score
+
                 db_save.commit()
+
+                # Refresh personalized next best actions for candidate
+                try:
+                    next_svc = NextActionService(session=db_save)
+                    next_svc.generate_next_actions(student_id)
+                except Exception:
+                    pass
             finally:
                 db_save.close()
 
             st.session_state["analysis_result"] = {
+                "student_id": student_id,
                 "parsed_resume": parsed_resume,
                 "extracted_resume": extracted_resume,
                 "parsed_jd": parsed_jd,

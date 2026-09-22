@@ -48,6 +48,11 @@ def render_sidebar() -> None:
 
             if selected_id != st.session_state.get("student_id"):
                 st.session_state["student_id"] = selected_id
+                st.session_state.pop("analysis_result", None)
+                st.session_state.pop("active_exam_id", None)
+                st.session_state.pop("exam_answers", None)
+                st.session_state.pop("last_exam_result", None)
+                st.session_state.pop("exam_candidate_id", None)
                 st.rerun()
 
         # 2. Candidate Quick Summary Card

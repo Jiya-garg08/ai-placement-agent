@@ -46,7 +46,13 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Initialize exam session states
+# Initialize and isolate exam session states per candidate
+if st.session_state.get("exam_candidate_id") != student_id:
+    st.session_state["exam_candidate_id"] = student_id
+    st.session_state["active_exam_id"] = None
+    st.session_state["exam_answers"] = {}
+    st.session_state["last_exam_result"] = None
+
 if "active_exam_id" not in st.session_state:
     st.session_state["active_exam_id"] = None
 if "exam_answers" not in st.session_state:
