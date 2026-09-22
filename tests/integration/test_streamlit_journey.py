@@ -26,10 +26,14 @@ from schemas.rag_schema import TutorQueryRequest
 def journey_student():
     init_db()
     db = SessionLocal()
-    profile = seed_demo_candidate(session=db)
-    pid = profile.id
-    db.close()
-    return pid
+    try:
+        user = db.query(User).filter_by(email="jiya.garg@example.com").first()
+        if user and user.profile:
+            return int(user.profile.id)
+        profile = seed_demo_candidate(session=db)
+        return int(profile.id)
+    finally:
+        db.close()
 
 
 def test_journey_stage1_dashboard_telemetry(journey_student):
