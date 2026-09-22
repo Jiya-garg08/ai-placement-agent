@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  ai-placement-agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ai_placement_agent
+    image: ai-placement-agent:latest
+    ports:
+      - "8501:8501"
+    environment:
+      - AZURE_MOCK_MODE=true
+      - DATABASE_URL=sqlite:////app/data/placement_prep.db
+      - AZURE_OPENAI_ENDPOINT=https://mock-openai.openai.azure.com/
+      - AZURE_OPENAI_API_KEY=mock-azure-key-zero-cost
+      - AZURE_SEARCH_ENDPOINT=https://mock-search.search.windows.net/
+      - AZURE_SEARCH_API_KEY=mock-search-admin-key
+      - GITHUB_TOKEN=ghp_mock_token_for_local_demonstration
+      - PYTHONPATH=/app
+    volumes:
+      # Mount data folder to persist SQLite database, uploaded resumes, and indexes across container restarts
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8501/_stcore/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
