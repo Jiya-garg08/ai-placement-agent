@@ -3,18 +3,24 @@ import httpx
 from config.settings import settings
 
 
-def get_github_portfolio(github_username: str, mock_mode: Optional[bool] = None) -> Dict[str, Any]:
+def get_github_portfolio(
+    github_username: Optional[str] = None,
+    username: Optional[str] = None,
+    mock_mode: Optional[bool] = None
+) -> Dict[str, Any]:
     """
     MCP Tool: Inspect candidate's public GitHub profile to extract top languages, repositories, and technical portfolio.
 
     Args:
         github_username: The GitHub handle (e.g. 'Jiya-garg08').
+        username: Alias for github_username.
         mock_mode: Optional boolean to enforce offline response.
 
     Returns:
         JSON object summarizing public repository metrics, primary tech stack, and featured projects.
     """
-    clean_username = github_username.strip().lstrip("@")
+    raw_user = github_username or username or "Jiya-garg08"
+    clean_username = raw_user.strip().lstrip("@")
     is_mock = mock_mode if mock_mode is not None else settings.AZURE_MOCK_MODE
 
     if is_mock or not clean_username:

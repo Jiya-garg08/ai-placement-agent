@@ -25,7 +25,7 @@ class RAGTutorAgent:
             query=request.query,
             top_k=3,
             topic_filter=request.topic_context,
-            min_relevance_score=0.25
+            min_relevance_score=0.18
         )
 
         if not results:
