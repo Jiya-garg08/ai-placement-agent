@@ -66,3 +66,28 @@ def test_full_jd_parse():
     assert len(parsed.required_skills) >= 4
     assert len(parsed.preferred_skills) >= 2
     assert len(parsed.domain_keywords) >= 3
+
+
+def test_non_engineering_jd_parse():
+    pm_jd = """
+Company: Global Growth Corp
+Position: Associate Product Manager (APM)
+Experience: Entry-Level / Fresher (0-1 yrs)
+
+About the Role:
+Drive customer discovery and lead agile sprint execution for our mobile app portfolio.
+
+Requirements:
+- Strong understanding of Product Management, Roadmapping, and User Research.
+- Experience with Feature Prioritization and PRD documentation.
+- Working knowledge of Agile and Scrum.
+
+Bonus:
+- Familiarity with A/B Testing, Google Analytics, and KPI Tracking.
+"""
+    parsed = JobDescriptionParser.parse(pm_jd, company_name="Global Growth Corp")
+    assert parsed.role_title == "Product Manager"
+    assert "Product Management" in parsed.required_skills
+    assert "Roadmapping" in parsed.required_skills
+    assert "A/B Testing" in parsed.preferred_skills or "A/B Testing" in parsed.required_skills
+

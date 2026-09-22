@@ -75,3 +75,37 @@ def test_parse_resume_from_text_stream():
     assert "[EMAIL_REDACTED]" in res.redacted_text
     assert "[PHONE_REDACTED]" in res.redacted_text
     assert "Python" in res.detected_skills
+
+
+def test_non_engineering_resume_parsing():
+    non_tech_resume = """
+Sarah Jenkins
+Email: sarah.j@example.com | Phone: 987-654-3210
+New York, NY
+
+SUMMARY
+Senior Product & Growth Strategist with 5+ years driving B2B SaaS product adoption.
+
+EDUCATION
+Columbia Business School - MBA in Marketing & Strategy (2020 - 2022)
+GPA: 3.85/4.0
+
+SKILLS
+Product Management, Roadmapping, A/B Testing, User Research, SEO, Content Strategy, Google Analytics, Financial Modeling, Budgeting
+
+EXPERIENCE
+Product Growth Lead at Horizon Media (2022 - Present)
+- Led A/B testing campaigns improving user onboarding conversion by 35%.
+- Formulated product roadmaps and managed cross-functional engineering and design sprints.
+"""
+    stream = io.BytesIO(non_tech_resume.encode("utf-8"))
+    res = ResumeService.parse_resume(stream, "sarah_resume.txt")
+
+    assert "[EMAIL_REDACTED]" in res.redacted_text
+    assert "[PHONE_REDACTED]" in res.redacted_text
+    assert "Product Management" in res.detected_skills
+    assert "Roadmapping" in res.detected_skills
+    assert "Seo" in res.detected_skills or "SEO" in [s.upper() for s in res.detected_skills]
+    assert "Google Analytics" in res.detected_skills
+    assert "Financial Modeling" in res.detected_skills
+

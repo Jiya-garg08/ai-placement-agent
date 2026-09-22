@@ -4,13 +4,39 @@ from config.constants import ALL_TAXONOMY_SKILLS, STANDARD_SKILL_TAXONOMY
 from schemas.jd_schema import ParsedJobDescription
 
 ROLE_PATTERNS = [
+    # Engineering & Tech
     (re.compile(r'\b(software\s+(development\s+)?engineer(\s+[1i]+)?|sde[- ]?[1i]?)\b', re.IGNORECASE), "Software Development Engineer (SDE)"),
     (re.compile(r'\b(backend\s+engineer|backend\s+developer)\b', re.IGNORECASE), "Backend Engineer"),
     (re.compile(r'\b(frontend\s+engineer|frontend\s+developer|ui\s+engineer)\b', re.IGNORECASE), "Frontend Engineer"),
     (re.compile(r'\b(full\s*stack\s+(engineer|developer))\b', re.IGNORECASE), "Full Stack Engineer"),
     (re.compile(r'\b(data\s+engineer)\b', re.IGNORECASE), "Data Engineer"),
     (re.compile(r'\b(machine\s+learning\s+engineer|ml\s+engineer|ai\s+engineer)\b', re.IGNORECASE), "Machine Learning Engineer"),
-    (re.compile(r'\b(devops\s+engineer|cloud\s+engineer|sre)\b', re.IGNORECASE), "DevOps / Cloud Engineer")
+    (re.compile(r'\b(devops\s+engineer|cloud\s+engineer|sre)\b', re.IGNORECASE), "DevOps / Cloud Engineer"),
+    (re.compile(r'\b(data\s+scientist)\b', re.IGNORECASE), "Data Scientist"),
+
+    # Product & Project Management
+    (re.compile(r'\b(product\s+manager|associate\s+product\s+manager|apm|tpm)\b', re.IGNORECASE), "Product Manager"),
+    (re.compile(r'\b(project\s+manager|scrum\s+master|program\s+manager)\b', re.IGNORECASE), "Project / Program Manager"),
+
+    # Data & Business Analysis
+    (re.compile(r'\b(business\s+analyst|bi\s+analyst|data\s+analyst)\b', re.IGNORECASE), "Data & Business Analyst"),
+
+    # Marketing & Growth
+    (re.compile(r'\b(digital\s+marketing|marketing\s+manager|growth\s+lead|growth\s+marketer|seo\s+specialist|content\s+strategist)\b', re.IGNORECASE), "Marketing & Growth Specialist"),
+
+    # Finance, Accounting & Banking
+    (re.compile(r'\b(financial\s+analyst|investment\s+banking|accountant|auditor|finance\s+manager)\b', re.IGNORECASE), "Financial Analyst"),
+
+    # Human Resources & People
+    (re.compile(r'\b(human\s+resources|hr\s+manager|talent\s+acquisition|recruiter|hr\s+specialist)\b', re.IGNORECASE), "Human Resources / Talent Specialist"),
+
+    # UI/UX & Design
+    (re.compile(r'\b(ui/ux\s+designer|product\s+designer|ux\s+researcher|visual\s+designer|graphic\s+designer)\b', re.IGNORECASE), "UI/UX & Product Designer"),
+
+    # Sales, Account & Operations
+    (re.compile(r'\b(account\s+executive|sales\s+manager|business\s+development|bdr|sdr)\b', re.IGNORECASE), "Sales & Business Development"),
+    (re.compile(r'\b(operations\s+manager|supply\s+chain\s+analyst|logistics\s+manager)\b', re.IGNORECASE), "Operations & Supply Chain Manager"),
+    (re.compile(r'\b(management\s+consultant|strategy\s+consultant)\b', re.IGNORECASE), "Management Consultant")
 ]
 
 EXPERIENCE_PATTERNS = [
@@ -21,22 +47,37 @@ EXPERIENCE_PATTERNS = [
 ]
 
 DOMAIN_KEYWORDS_POOL = [
+    # Technical & Engineering
     "Scalability", "Microservices", "RESTful APIs", "Distributed Systems",
     "CI/CD", "Agile", "Scrum", "High Availability", "System Architecture",
-    "Unit Testing", "Test-Driven Development", "Containerization", "Code Quality"
+    "Unit Testing", "Test-Driven Development", "Containerization", "Code Quality",
+    # Business, Strategy, Product & Operations
+    "Stakeholder Management", "KPI Tracking", "A/B Testing", "Cross-Functional",
+    "Financial Modeling", "Market Analysis", "Process Optimization", "Customer Retention",
+    "User Research", "Go-To-Market", "Budgeting", "Product Strategy", "Lead Generation"
 ]
 
 
 class JobDescriptionParser:
-    """Deterministic parser for Job Descriptions to extract roles, experience, skills, and keywords."""
+    """Deterministic parser for Job Descriptions to extract roles, experience, skills, and keywords across all fields."""
 
     @staticmethod
     def detect_role(text: str, fallback: Optional[str] = None) -> str:
-        """Detect the target role from JD title or description text."""
+        """Detect the target role from JD title or description text across any domain."""
         for pattern, role in ROLE_PATTERNS:
             if pattern.search(text):
                 return role
-        return fallback or "Software Development Engineer (SDE)"
+
+        # Heuristic check for "Position:", "Role:", "Title:" in top lines
+        lines = [l.strip() for l in text.split("\n") if l.strip()]
+        for l in lines[:5]:
+            match = re.search(r'\b(position|role|job\s+title)\s*:\s*([A-Za-z0-9\s/()-]+)', l, re.IGNORECASE)
+            if match:
+                extracted = match.group(2).strip()
+                if 2 <= len(extracted) <= 50:
+                    return extracted.title()
+
+        return fallback or "Professional Role"
 
     @staticmethod
     def detect_experience_level(text: str) -> str:

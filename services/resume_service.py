@@ -1,7 +1,7 @@
 import re
 import io
 from pathlib import Path
-from typing import Union, BinaryIO, Dict, List
+from typing import Union, BinaryIO, Dict, List, Optional
 
 import pypdf
 import docx
@@ -82,15 +82,33 @@ class ResumeService:
         return {k: "\n".join(v) for k, v in sections.items() if v}
 
     @classmethod
-    def extract_skills_heuristic(cls, text: str) -> List[str]:
-        """Extract technical skills deterministically using regular expressions and taxonomy."""
+    def extract_skills_heuristic(cls, text: str, sections: Optional[Dict[str, str]] = None) -> List[str]:
+        """Extract domain and cross-functional skills deterministically using taxonomy and section parsing."""
         detected = set()
         lower_text = text.lower()
+
+        # 1. Match from multi-domain taxonomy
         for skill in ALL_TAXONOMY_SKILLS:
-            # Match whole word boundaries
             escaped_skill = re.escape(skill)
             if re.search(rf'\b{escaped_skill}\b', lower_text):
                 detected.add(skill.title())
+
+        # 2. Extract dynamic domain skills from the skills section if available
+        if sections and "skills" in sections:
+            skills_raw = sections["skills"]
+            # Split by newlines, commas, semicolons, bullets, and pipes
+            tokens = re.split(r'[\n,;•|\-*]', skills_raw)
+            for raw_tok in tokens:
+                tok = raw_tok.strip()
+                # Remove prefixes like "Languages:", "Tools:", etc.
+                if ":" in tok:
+                    tok = tok.split(":")[-1].strip()
+                # Filter valid skill phrases (1-4 words, reasonable length, not pure numbers or URLs)
+                words = tok.split()
+                if 1 <= len(words) <= 4 and 2 <= len(tok) <= 35:
+                    if not any(stop in tok.lower() for stop in ["http", "www", "email", "phone", "profile", "summary"]):
+                        detected.add(tok.title())
+
         return sorted(list(detected))
 
     @classmethod
@@ -99,7 +117,7 @@ class ResumeService:
         raw_text = cls.extract_text(source, filename)
         redacted = redact_pii(raw_text)
         sections = cls.segment_sections(redacted)
-        skills = cls.extract_skills_heuristic(redacted)
+        skills = cls.extract_skills_heuristic(redacted, sections)
 
         return ParsedResumeResponse(
             raw_text=raw_text,

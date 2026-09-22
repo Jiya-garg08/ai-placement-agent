@@ -39,6 +39,39 @@ STANDARD_SKILL_TAXONOMY = {
     "AI_ML": [
         "Machine Learning", "Deep Learning", "NLP", "Computer Vision", "Scikit-Learn",
         "TensorFlow", "PyTorch", "Pandas", "NumPy", "Data Analysis"
+    ],
+    "Product_Management": [
+        "Product Management", "Roadmapping", "User Research", "Agile", "Scrum",
+        "PRD", "Feature Prioritization", "Stakeholder Management", "A/B Testing",
+        "KPI Tracking", "Go-To-Market", "Customer Discovery", "Product Strategy"
+    ],
+    "Data_Analytics": [
+        "Business Intelligence", "PowerBI", "Tableau", "Excel", "Spreadsheets",
+        "Statistics", "Data Visualization", "ETL", "Google Analytics", "Looker", "Dashboarding"
+    ],
+    "Business_Finance": [
+        "Financial Modeling", "Accounting", "Budgeting", "Valuation", "Corporate Finance",
+        "Auditing", "Risk Management", "Business Strategy", "Market Research",
+        "P&L Management", "Forecasting", "Financial Analysis", "Cash Flow"
+    ],
+    "Marketing_Growth": [
+        "Digital Marketing", "SEO", "Content Strategy", "Social Media Marketing",
+        "Copywriting", "Email Marketing", "Brand Management", "Performance Marketing",
+        "SEM", "Public Relations", "Campaign Management", "Conversion Optimization"
+    ],
+    "Design_Creative": [
+        "UI/UX Design", "Figma", "User Experience", "Wireframing", "Prototyping",
+        "Interaction Design", "Graphic Design", "Adobe Creative Suite", "Design Thinking",
+        "Usability Testing", "Information Architecture"
+    ],
+    "HR_People": [
+        "Talent Acquisition", "Human Resources", "Recruitment", "Employee Relations",
+        "HRIS", "Performance Management", "Onboarding", "HR Policies", "Organizational Development"
+    ],
+    "Sales_Operations": [
+        "B2B Sales", "Lead Generation", "CRM", "Salesforce", "Customer Success",
+        "Negotiation", "Supply Chain", "Operations Management", "Process Optimization",
+        "Logistics", "Project Management", "Vendor Management", "Contract Negotiation"
     ]
 }
 

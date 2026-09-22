@@ -69,7 +69,8 @@ Software Engineering Intern at Tech Corp (May 2025 - July 2025)
 - Optimized slow SQL queries with B-Tree indexes, reducing p95 latency from 450ms to 65ms.
 """
 
-SAMPLE_JD_TEXT = """Software Development Engineer (SDE 1) - Tier 1 Product MNC
+JD_PRESETS = {
+    "Tier 1 SDE 1 (Software Engineering)": """Software Development Engineer (SDE 1) - Tier 1 Product MNC
 Experience: Entry-Level / Fresher (0-1 yrs)
 Location: Bangalore / Hyderabad / Hybrid
 
@@ -77,8 +78,7 @@ ABOUT THE ROLE:
 We are seeking a high-caliber Software Development Engineer to design and build mission-critical distributed services.
 
 REQUIRED QUALIFICATIONS:
-- Bachelor's degree in Computer Science, Engineering, or related field.
-- Strong proficiency in Python, Java, or C++.
+- Proficiency in Python, Java, or C++.
 - Solid grounding in Data Structures and Algorithms with proven problem-solving abilities.
 - Experience with Relational Databases, SQL queries, and ACID transactions.
 - Sound understanding of Operating Systems, Memory Management, and Concurrency.
@@ -86,8 +86,76 @@ REQUIRED QUALIFICATIONS:
 PREFERRED / NICE TO HAVE:
 - Hands-on experience with Docker, Microservices, and Redis distributed caching.
 - Familiarity with Cloud architectures (Azure or AWS).
-- Prior internship experience in backend engineering or distributed systems.
+""",
+    "Associate Product Manager (APM / PM)": """Associate Product Manager (APM) - Tech & Business
+Experience: Entry-Level / Fresher (0-1 yrs)
+Location: Remote / Mumbai
+
+ABOUT THE ROLE:
+We are seeking an analytical, customer-centric Product Manager to lead product discovery, feature roadmapping, and execution.
+
+REQUIRED QUALIFICATIONS:
+- Strong understanding of Product Management, Roadmapping, and Agile / Scrum principles.
+- Experience writing clear PRDs and defining Feature Prioritization.
+- Solid experience in User Research, Customer Discovery, and A/B Testing.
+- Excellent Stakeholder Management and cross-functional leadership.
+
+PREFERRED / NICE TO HAVE:
+- Familiarity with KPI Tracking, Product Strategy, and Go-To-Market launches.
+- Working knowledge of SQL or Business Intelligence for data exploration.
+""",
+    "Data & Business Analyst (Analytics)": """Data & Business Analyst - Business Intelligence
+Experience: Junior (1-3 yrs)
+Location: Gurgaon / Hybrid
+
+ABOUT THE ROLE:
+Join our analytics team to transform complex datasets into actionable executive insights and dashboards.
+
+REQUIRED QUALIFICATIONS:
+- Advanced proficiency in SQL, Excel, and Spreadsheets.
+- Hands-on experience with Business Intelligence tools: PowerBI or Tableau.
+- Strong understanding of Statistics, Data Visualization, and KPI Tracking.
+- Experience building interactive dashboards and exploratory data reports.
+
+PREFERRED / NICE TO HAVE:
+- Experience with Python, Pandas, or ETL pipelines.
+- Familiarity with Google Analytics and Looker.
+""",
+    "Growth & Digital Marketing Specialist (Marketing)": """Growth & Digital Marketing Specialist
+Experience: Entry-Level / Fresher (0-1 yrs)
+Location: Bangalore / Remote
+
+ABOUT THE ROLE:
+Drive acquisition, engagement, and conversion across multiple inbound and performance marketing channels.
+
+REQUIRED QUALIFICATIONS:
+- Deep expertise in Digital Marketing, SEO, and Content Strategy.
+- Experience in Social Media Marketing, Copywriting, and Campaign Management.
+- Familiarity with Conversion Optimization, SEM, and Email Marketing.
+- Analytical mindset with hands-on knowledge of Google Analytics.
+
+PREFERRED / NICE TO HAVE:
+- Familiarity with CRM systems (Hubspot or Salesforce).
+- Experience in B2B SaaS marketing or Brand Management.
+""",
+    "Financial Analyst (Finance & Strategy)": """Financial Analyst - Corporate Finance & Strategy
+Experience: Junior (1-3 yrs)
+Location: Mumbai / Bangalore
+
+ABOUT THE ROLE:
+Provide financial modeling, budgeting, and performance forecasting to support executive corporate strategy.
+
+REQUIRED QUALIFICATIONS:
+- Strong skills in Financial Modeling, Accounting, and Valuation.
+- Experience in Budgeting, Forecasting, and Financial Analysis.
+- High proficiency in Excel, Spreadsheets, and Corporate Finance principles.
+- Experience with P&L Management and Cash Flow analysis.
+
+PREFERRED / NICE TO HAVE:
+- Familiarity with Risk Management and Auditing standards.
+- Experience with PowerBI or Business Intelligence tools.
 """
+}
 
 col_left, col_right = st.columns(2)
 
@@ -96,24 +164,25 @@ with col_left:
     use_sample_resume = st.checkbox("Use Sample Resume (Jiya Garg)", value=True)
     
     uploaded_file = st.file_uploader(
-        "Upload Resume (PDF, DOCX, or TXT)",
+        "Upload Resume from ANY field (PDF, DOCX, or TXT)",
         type=["pdf", "docx", "txt"],
         disabled=use_sample_resume
     )
 
     if not use_sample_resume and not uploaded_file:
-        st.info("Upload a resume file above or check 'Use Sample Resume'.")
+        st.info("Upload a resume file above or check 'Use Sample Resume'. Supports all industries: Tech, Product, Marketing, Finance, HR, Design, Operations.")
 
 with col_right:
     st.markdown("#### 2. Target Job Description (JD)")
+    jd_preset_options = list(JD_PRESETS.keys()) + ["Custom Job Description"]
     jd_preset = st.selectbox(
         "Select Target JD Preset",
-        options=["Tier 1 SDE 1 (Product MNC)", "Custom Job Description"]
+        options=jd_preset_options
     )
-    if jd_preset == "Tier 1 SDE 1 (Product MNC)":
-        jd_input_text = st.text_area("Job Description Text", value=SAMPLE_JD_TEXT, height=220)
+    if jd_preset in JD_PRESETS:
+        jd_input_text = st.text_area("Job Description Text", value=JD_PRESETS[jd_preset], height=240)
     else:
-        jd_input_text = st.text_area("Paste Target Job Description", height=220, placeholder="Paste JD requirements here...")
+        jd_input_text = st.text_area("Paste Target Job Description (Any Domain)", height=240, placeholder="Paste JD requirements from any field or industry here...")
 
 analyze_btn = st.button("🚀 Analyze Resume & JD Alignment", use_container_width=True, type="primary")
 

@@ -11,14 +11,14 @@ from schemas.resume_schema import (
     ParsedResumeResponse
 )
 
-RESUME_AGENT_SYSTEM_PROMPT = """You are an expert Technical Recruiter and Resume Parsing Agent for top tech companies.
+RESUME_AGENT_SYSTEM_PROMPT = """You are an expert Executive Recruiter and Resume Parsing Agent capable of analyzing candidates across any industry or domain (Engineering, Business, Product Management, Marketing, Finance, Sales, Human Resources, Design, Operations, Data, Healthcare, Legal, etc.).
 Your job is to analyze candidate resume text and extract high-precision structured candidate entities:
 1. candidate_name: Full name of candidate.
-2. summary: A concise 2-line technical profile summary.
-3. skills: A deduplicated list of technical skills, languages, frameworks, databases, and algorithms.
-4. education: Array of degrees, universities, graduation years, and GPAs.
-5. projects: Key technical projects with tech stack and achievements.
-6. experience: Professional work or internship experience.
+2. summary: A concise 2-line professional profile summary.
+3. skills: A deduplicated list of domain competencies, functional skills, tools, methodologies, frameworks, and proficiencies across the candidate's respective field.
+4. education: Array of degrees, universities/institutions, graduation years, and GPAs/percentages.
+5. projects: Key professional, academic, or portfolio projects with toolstack/methodologies and measurable impact.
+6. experience: Professional work, internships, leadership, or organizational experience.
 
 Return ONLY valid JSON conforming to the requested schema. Do NOT invent credentials not present in the text."""
 
@@ -58,15 +58,26 @@ class ResumeAnalysisAgent:
 <<<FULL_TEXT>>>
 {parsed_resume.redacted_text[:4000]}
 """
-        response = client.beta.chat.completions.parse(
-            model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
-            messages=[
-                {"role": "system", "content": RESUME_AGENT_SYSTEM_PROMPT},
-                {"role": "user", "content": prompt}
-            ],
-            response_format=ExtractedResume,
-            temperature=0.1
-        )
+        try:
+            response = client.beta.chat.completions.parse(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": RESUME_AGENT_SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format=ExtractedResume,
+                max_completion_tokens=2500
+            )
+        except Exception:
+            response = client.beta.chat.completions.parse(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": RESUME_AGENT_SYSTEM_PROMPT},
+                    {"role": "user", "content": prompt}
+                ],
+                response_format=ExtractedResume,
+                temperature=0.1
+            )
         return response.choices[0].message.parsed
 
     def _heuristic_mock_extract(self, parsed_resume: ParsedResumeResponse) -> ExtractedResume:
@@ -95,14 +106,22 @@ class ResumeAnalysisAgent:
                 gpa_match = re.search(r'\b(GPA:?\s*[\d.]+(?:/\d+)?|\b\d{1,2}\.?\d*%\b)', l, re.IGNORECASE)
                 gpa = gpa_match.group(0) if gpa_match else None
 
+                lower_l = l.lower()
+                if any(d in lower_l for d in ["mba", "master", "m.s", "ms", "m.com", "m.a"]):
+                    degree_name = "Master's Degree (MBA / MS / MTech)"
+                elif any(d in lower_l for d in ["phd", "doctorate"]):
+                    degree_name = "Doctorate / Ph.D."
+                else:
+                    degree_name = "Bachelor of Technology / Science"
+
                 edu_list.append(EducationItem(
                     institution=l.split("-")[0].strip() if "-" in l else l,
-                    degree="Bachelor of Technology / Science",
+                    degree=degree_name,
                     graduation_year=grad_year,
                     cgpa_or_percentage=gpa
                 ))
         if not edu_list:
-            edu_list.append(EducationItem(institution="University", degree="Computer Science", graduation_year=2026))
+            edu_list.append(EducationItem(institution="University", degree="Bachelor of Technology / Science", graduation_year=2026))
 
         # 3. Experience extraction
         exp_list = []
