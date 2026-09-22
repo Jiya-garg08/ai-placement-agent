@@ -60,12 +60,17 @@ class HybridRetriever:
             query_vec = query_vec / q_norm
 
         query_words = set(re.findall(r'\w+', query.lower()))
+        filter_words = set(re.findall(r'\w+', topic_filter.lower().replace("&", "and"))) if topic_filter else set()
         results = []
 
         for doc in docs:
             # Apply topic filter if specified
-            if topic_filter and topic_filter.lower() not in doc.get("topic", "").lower():
-                continue
+            if filter_words:
+                doc_topic = f"{doc.get('topic', '')} {doc.get('title', '')}".lower().replace("&", "and")
+                doc_topic_words = set(re.findall(r'\w+', doc_topic))
+                # If neither topic acronym nor any keyword matches, skip
+                if not (filter_words & doc_topic_words):
+                    continue
 
             # 1. Cosine similarity
             doc_vec = np.array(doc.get("content_vector", []))
