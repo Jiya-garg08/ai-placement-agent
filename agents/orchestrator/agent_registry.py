@@ -130,6 +130,19 @@ class AgentRegistry:
             instance=PracticeService()
         )
 
+        # 9. Next Best Action Recommendation Agent
+        from agents.recommendation_agent.recommendation_agent import NextActionRecommendationAgent
+        self.register(
+            AgentMetadata(
+                name="NextActionRecommendationAgent",
+                role="Tactical Recommendation Coach",
+                description="Surfaces 1-3 urgent preparation actions linking directly to empirical weak spots.",
+                supported_intents=[UserIntent.NEXT_BEST_ACTION],
+                timeout_seconds=8.0
+            ),
+            instance=NextActionRecommendationAgent(mock_mode=self.mock_mode)
+        )
+
     def register(self, metadata: AgentMetadata, instance: Any) -> None:
         """Register a subagent with its metadata and executable instance."""
         self._registry[metadata.name] = {

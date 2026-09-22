@@ -403,6 +403,32 @@ class FoundryMasterOrchestrator:
                 "Ask tutor for explanations on weak topics"
             ]
 
+        elif intent == UserIntent.NEXT_BEST_ACTION:
+            delegated_agent = "NextActionRecommendationAgent"
+            sid = session.student_id or 1
+            from agents.recommendation_agent.recommendation_agent import NextActionRecommendationAgent
+            rec_agent = NextActionRecommendationAgent(mock_mode=self.mock_mode)
+            rec_resp = rec_agent.get_recommendations(sid)
+
+            response_text = (
+                f"### Next Best Action Recommendation\n\n"
+                f"{rec_resp.motivational_summary}\n\n"
+                f"#### Recommended Priority Actions:\n"
+            )
+            for idx, act in enumerate(rec_resp.actions, 1):
+                p_badge = f"[{act.priority}]"
+                response_text += (
+                    f"{idx}. **{act.title}** {p_badge} (⏱️ {act.estimated_minutes} mins -> Navigate to **{act.target_page}**)\n"
+                    f"   - *Rationale:* {act.reasoning}\n"
+                )
+
+            suggested_actions = [
+                f"Navigate to {rec_resp.actions[0].target_page}" if rec_resp.actions else "Start Practice",
+                "View Placement Readiness Trends",
+                "Consult RAG Tutor on Weak Topic"
+            ]
+            data_payload = rec_resp.model_dump()
+
         elif intent == UserIntent.RESUME_ANALYSIS:
             delegated_agent = "ResumeAnalysisAgent"
             response_text = (

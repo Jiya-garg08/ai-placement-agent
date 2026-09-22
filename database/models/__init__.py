@@ -5,6 +5,7 @@ from database.models.assessment_attempt import AssessmentAttempt, AssessmentAnsw
 from database.models.skill_gap import SkillGap
 from database.models.learning_plan import LearningPlan, LearningPlanItem
 from database.models.practice import PracticeAttempt, PracticeStreak
+from database.models.recommendation import NextBestAction
 
 __all__ = [
     "User",
@@ -20,4 +21,5 @@ __all__ = [
     "LearningPlanItem",
     "PracticeAttempt",
     "PracticeStreak",
+    "NextBestAction",
 ]
