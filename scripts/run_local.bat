@@ -1,6 +1,9 @@
 @echo off
 setlocal enabledelayedexpansion
 
+:: Navigate to repository root directory
+cd /d "%~dp0.."
+
 echo ==============================================================================
 echo    AI Placement Preparation Agent - Local Development Launcher (Windows)
 echo ==============================================================================
