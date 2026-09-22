@@ -9,12 +9,16 @@ from database.repositories.skill_gap_repository import SkillGapRepository
 from schemas.skill_gap_schema import SkillGapReport, PriorityTopicItem
 
 
+from database.database import SessionLocal
+
+
 class SkillGapService:
     """Service computing deterministic skill gaps and readiness indices."""
 
-    def __init__(self, session: Session):
-        self.session = session
-        self.gap_repo = SkillGapRepository(session)
+    def __init__(self, session: Optional[Session] = None):
+        self._owns_session = session is None
+        self.session = session if session is not None else SessionLocal()
+        self.gap_repo = SkillGapRepository(self.session)
 
     def analyze_and_persist_gaps(
         self,

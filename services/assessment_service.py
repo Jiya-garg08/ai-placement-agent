@@ -30,15 +30,19 @@ ROLE_TOPIC_MAP = {
 }
 
 
+from database.database import SessionLocal
+
+
 class AssessmentService:
     """Service handling assessment creation, question sampling, and submission evaluation."""
 
-    def __init__(self, session: Session):
-        self.session = session
-        self.assessment_repo = AssessmentRepository(session)
-        self.question_repo = QuestionRepository(session)
-        self.attempt_repo = AssessmentAttemptRepository(session)
-        self.answer_repo = AssessmentAnswerRepository(session)
+    def __init__(self, session: Optional[Session] = None):
+        self._owns_session = session is None
+        self.session = session if session is not None else SessionLocal()
+        self.assessment_repo = AssessmentRepository(self.session)
+        self.question_repo = QuestionRepository(self.session)
+        self.attempt_repo = AssessmentAttemptRepository(self.session)
+        self.answer_repo = AssessmentAnswerRepository(self.session)
 
     def create_diagnostic_assessment(self, target_role: str, total_questions: int = 10) -> Assessment:
         """Generate a role-tailored diagnostic quiz sampling from relevant domain topics."""

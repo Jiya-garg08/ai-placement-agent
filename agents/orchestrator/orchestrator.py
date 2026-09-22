@@ -10,6 +10,8 @@ from schemas.orchestrator_schema import (
 )
 from schemas.rag_schema import TutorQueryRequest, CitationSource
 from agents.orchestrator.routing_rules import IntentRouter
+from agents.orchestrator.agent_registry import AgentRegistry
+from agents.common.error_handler import safe_agent_call, RateLimiter, ResponseCache
 from agents.tutor_agent.tutor_agent import RAGTutorAgent
 from agents.planner_agent.planner_agent import LearningPlannerAgent
 from agents.resume_agent.resume_agent import ResumeAnalysisAgent
@@ -34,6 +36,9 @@ class FoundryMasterOrchestrator:
         tutor_agent: Optional[RAGTutorAgent] = None,
         planner_agent: Optional[LearningPlannerAgent] = None,
         resume_agent: Optional[ResumeAnalysisAgent] = None,
+        registry: Optional[AgentRegistry] = None,
+        rate_limiter: Optional[RateLimiter] = None,
+        cache: Optional[ResponseCache] = None,
         mock_mode: Optional[bool] = None
     ):
         self.mock_mode = mock_mode if mock_mode is not None else settings.AZURE_MOCK_MODE
@@ -41,6 +46,9 @@ class FoundryMasterOrchestrator:
         self.tutor_agent = tutor_agent or RAGTutorAgent(mock_mode=self.mock_mode)
         self.planner_agent = planner_agent or LearningPlannerAgent(mock_mode=self.mock_mode)
         self.resume_agent = resume_agent or ResumeAnalysisAgent(mock_mode=self.mock_mode)
+        self.registry = registry or AgentRegistry(mock_mode=self.mock_mode)
+        self.rate_limiter = rate_limiter
+        self.cache = cache
 
         # In-memory multi-turn session repository
         self._sessions: Dict[str, ConversationSession] = {}
@@ -54,6 +62,10 @@ class FoundryMasterOrchestrator:
             "mark_roadmap_item_status": mark_roadmap_item_status,
             "get_github_portfolio": get_github_portfolio,
         }
+
+    def get_swarm_health(self) -> Dict[str, str]:
+        """Report operational health status across all registered swarm subagents."""
+        return self.registry.health_check_all()
 
     # --------------------------------------------------------------------------
     # Session Management
@@ -146,9 +158,28 @@ class FoundryMasterOrchestrator:
                 topic_context=topic_ctx,
                 chat_history=chat_history_list
             )
-            tutor_resp = self.tutor_agent.answer_query(tutor_req)
-            response_text = tutor_resp.answer
-            citations = tutor_resp.citations
+
+            # Resilient safe agent execution with fallback and caching
+            cache_key = f"tutor:{topic_ctx}:{message}"
+            safe_resp, is_fallback, notice = safe_agent_call(
+                self.tutor_agent.answer_query,
+                tutor_req,
+                cache_key=cache_key,
+                timeout_seconds=12.0,
+                rate_limiter=self.rate_limiter,
+                cache=self.cache
+            )
+
+            if safe_resp:
+                response_text = safe_resp.answer
+                citations = safe_resp.citations
+            else:
+                response_text = (
+                    f"⚠️ {notice or 'Tutor service temporarily unavailable.'}\n\n"
+                    "We are currently experiencing upstream API or rate-limit constraints. "
+                    "Please consult your personalized learning roadmap or try again in a few moments."
+                )
+                citations = []
             
             if topic_ctx:
                 session.context["active_topic"] = topic_ctx
@@ -170,29 +201,45 @@ class FoundryMasterOrchestrator:
             target_student_id = session.student_id or 1
             mcp_roadmap = self.execute_mcp_tool("get_active_learning_roadmap", student_id=target_student_id)
             
-            if "roadmap" in mcp_roadmap and mcp_roadmap["roadmap"].get("items"):
-                roadmap_info = mcp_roadmap["roadmap"]
+            if mcp_roadmap.get("has_active_plan") and mcp_roadmap.get("items"):
+                roadmap_info = mcp_roadmap
                 response_text = (
-                    f"### Current Active Preparation Roadmap: {roadmap_info['title']}\n\n"
+                    f"### Current Active Preparation Roadmap: {roadmap_info.get('plan_name', 'Placement Plan')}\n\n"
                     f"**Target Role:** {roadmap_info.get('target_role', 'Software Development Engineer')}\n"
                     f"**Total Duration:** {roadmap_info.get('total_weeks', 4)} weeks | "
-                    f"**Daily Commitment:** {roadmap_info.get('daily_hours_target', 2.5)} hours\n\n"
+                    f"**Daily Commitment:** {roadmap_info.get('daily_hours_target', 2.5)} hours\n"
+                    f"**Progress:** {roadmap_info.get('progress_percentage', 0.0)}%\n\n"
                     f"#### Upcoming Milestones:\n"
                 )
                 for item in roadmap_info.get("items", [])[:4]:
-                    status_badge = "[COMPLETED]" if item["status"] == "COMPLETED" else "[PENDING]"
-                    response_text += f"- **Week {item['week_number']}: {item['topic']}** ({item['subtopic']}) {status_badge}\n"
-                    response_text += f"  - Objective: {item['description']}\n"
+                    status_badge = f"[{item['status'].upper()}]"
+                    response_text += f"- **Week {item['week_number']}: {item['topic']}** ({item.get('priority', 'Medium')} Priority) {status_badge}\n"
+                    response_text += f"  - Objective: {item['learning_objectives']} (Target: {item['practice_goal_count']} problems)\n"
                 
                 data_payload = roadmap_info
             else:
-                # Generate new roadmap via planner
-                plan_structure = self.planner_agent.generate_plan(
-                    target_role=params.get("target_role", "Software Development Engineer"),
+                # Generate new roadmap via planner with safe fallback
+                target_role_str = params.get("target_role", "Software Development Engineer")
+                cache_key = f"roadmap:{target_role_str}"
+                
+                safe_plan, is_fb, notice = safe_agent_call(
+                    self.planner_agent.generate_plan,
+                    target_role=target_role_str,
                     skill_gap=None,
                     total_weeks=4,
-                    daily_hours=2.5
+                    daily_hours=2.5,
+                    fallback_func=lambda **kw: self.planner_agent._heuristic_mock_generate(
+                        target_role_str, None, 4, 2.5
+                    ),
+                    cache_key=cache_key,
+                    timeout_seconds=15.0,
+                    rate_limiter=self.rate_limiter,
+                    cache=self.cache
                 )
+                plan_structure = safe_plan or self.planner_agent._heuristic_mock_generate(
+                    target_role_str, None, 4, 2.5
+                )
+
                 response_text = (
                     f"### Generated 4-Week Placement Preparation Plan\n\n"
                     f"**Target Role:** {plan_structure.target_role}\n\n"
