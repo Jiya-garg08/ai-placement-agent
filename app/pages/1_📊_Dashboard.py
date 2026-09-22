@@ -318,7 +318,7 @@ else:
                     <div class="action-meta">
                         <span>⏱️ Estimated: <b>{act.estimated_minutes} mins</b></span>
                         <span>🏷️ Topic: <b>{act.topic}</b></span>
-                        <span>💡 <i>{act.reasoning or 'Curated recommendation'}</i></span>
+                        <span>💡 <i>{getattr(act, 'reasoning', None) or act.action_type or 'Curated recommendation'}</i></span>
                     </div>
                 </div>
                 """,
