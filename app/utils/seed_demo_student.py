@@ -31,9 +31,6 @@ def seed_demo_candidate(session: Optional[Session] = None) -> StudentProfile:
             if not saved:
                 next_action_svc.generate_next_actions(existing_user.profile.id)
             prof = existing_user.profile
-            db.refresh(prof)
-            db.refresh(prof.user)
-            db.expunge_all()
             return prof
 
         # 1. Create User
@@ -199,11 +196,6 @@ def seed_demo_candidate(session: Optional[Session] = None) -> StudentProfile:
         # 8. Generate Next Best Actions
         next_action_svc = NextActionService(session=db)
         next_action_svc.generate_next_actions(profile.id)
-
-        # Refresh and expunge so object can be used outside session
-        db.refresh(profile)
-        db.refresh(profile.user)
-        db.expunge_all()
 
         return profile
     finally:
