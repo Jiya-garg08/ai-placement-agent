@@ -64,4 +64,5 @@ def get_db_context() -> Generator[Session, None, None]:
 
 def init_db():
     """Create all registered database tables."""
+    import database.models  # noqa: F401
     Base.metadata.create_all(bind=engine)

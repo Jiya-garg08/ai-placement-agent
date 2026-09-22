@@ -61,6 +61,23 @@ class HybridRetriever:
 
         query_words = set(re.findall(r'\w+', query.lower()))
         filter_words = set(re.findall(r'\w+', topic_filter.lower().replace("&", "and"))) if topic_filter else set()
+        
+        # Expand common computer science acronyms for robust matching
+        acronym_expansions = {
+            "dsa": {"data", "structures", "algorithms"},
+            "dbms": {"database", "management", "systems"},
+            "os": {"operating", "systems"},
+            "cn": {"computer", "networks"},
+            "oop": {"object", "oriented", "programming"},
+            "ml": {"machine", "learning"},
+            "sql": {"sql", "structured", "query"},
+        }
+        expanded_filters = set(filter_words)
+        for w in filter_words:
+            if w in acronym_expansions:
+                expanded_filters |= acronym_expansions[w]
+        filter_words = expanded_filters
+
         results = []
 
         for doc in docs:
