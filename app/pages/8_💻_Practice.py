@@ -82,6 +82,12 @@ try:
         if "drill_questions" not in st.session_state or refresh_qs or st.session_state.get("last_domain") != selected_domain:
             st.session_state["drill_questions"] = practice_svc.get_practice_questions(topic=topic_query, limit=4)
             st.session_state["last_domain"] = selected_domain
+            # Clear radio selection states from previous questions
+            for k in list(st.session_state.keys()):
+                if k.startswith("mcq_") or k.startswith("sub_mcq_"):
+                    del st.session_state[k]
+            if refresh_qs:
+                st.toast("Loaded fresh set of practice questions!", icon="🔄")
 
         drill_qs = st.session_state.get("drill_questions", [])
 

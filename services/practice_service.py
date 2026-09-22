@@ -2,6 +2,7 @@ import re
 from datetime import date, timedelta
 from typing import List, Optional, Dict, Any
 from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func
 
 from database.database import SessionLocal
 from database.models.assessment import Question
@@ -149,7 +150,7 @@ class PracticeService:
         if difficulty:
             query = query.filter(Question.difficulty.ilike(difficulty.strip()))
 
-        questions = query.limit(limit).all()
+        questions = query.order_by(func.random()).limit(limit).all()
 
         return [
             PracticeQuestionResponse(
