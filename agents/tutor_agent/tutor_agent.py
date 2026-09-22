@@ -84,12 +84,19 @@ class RAGTutorAgent:
         )
 
         messages = format_tutor_prompt(query, grounded_context, chat_history)
-        resp = client.chat.completions.create(
-            model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
-            messages=messages,
-            temperature=0.1,
-            max_tokens=650
-        )
+        try:
+            resp = client.chat.completions.create(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=messages,
+                max_completion_tokens=650
+            )
+        except Exception:
+            resp = client.chat.completions.create(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=messages,
+                temperature=0.1,
+                max_tokens=650
+            )
         content = resp.choices[0].message.content or ""
         citation_footer = CitationEngine.format_citation_markdown(citations)
         return f"{content}\n{citation_footer}"

@@ -175,15 +175,25 @@ class PerformanceEvaluationAgent:
             "velocity": velocity.model_dump()
         }, indent=2)
 
-        resp = client.chat.completions.create(
-            model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
-            messages=[
-                {"role": "system", "content": EVALUATION_SYSTEM_PROMPT},
-                {"role": "user", "content": f"Provide placement evaluation critique for candidate:\n{user_content}"}
-            ],
-            temperature=0.2,
-            max_tokens=500
-        )
+        try:
+            resp = client.chat.completions.create(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": EVALUATION_SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Provide placement evaluation critique for candidate:\n{user_content}"}
+                ],
+                max_completion_tokens=500
+            )
+        except Exception:
+            resp = client.chat.completions.create(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": EVALUATION_SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Provide placement evaluation critique for candidate:\n{user_content}"}
+                ],
+                temperature=0.2,
+                max_tokens=500
+            )
         summary = resp.choices[0].message.content or "Placement evaluation synthesized."
         focus_areas = [
             "Strengthen core algorithms and data structures",

@@ -96,13 +96,23 @@ class NextActionRecommendationAgent:
             "top_actions": [a.model_dump() for a in actions]
         }
 
-        resp = client.chat.completions.create(
-            model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
-            messages=[
-                {"role": "system", "content": COACH_SYSTEM_PROMPT},
-                {"role": "user", "content": f"Synthesize concise daily coaching advice for:\n{json.dumps(prompt_payload, indent=2)}"}
-            ],
-            temperature=0.3,
-            max_tokens=300
-        )
+        try:
+            resp = client.chat.completions.create(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": COACH_SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Synthesize concise daily coaching advice for:\n{json.dumps(prompt_payload, indent=2)}"}
+                ],
+                max_completion_tokens=300
+            )
+        except Exception:
+            resp = client.chat.completions.create(
+                model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
+                messages=[
+                    {"role": "system", "content": COACH_SYSTEM_PROMPT},
+                    {"role": "user", "content": f"Synthesize concise daily coaching advice for:\n{json.dumps(prompt_payload, indent=2)}"}
+                ],
+                temperature=0.3,
+                max_tokens=300
+            )
         return resp.choices[0].message.content or "Focus on completing your top recommended action today."
