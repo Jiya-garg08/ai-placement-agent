@@ -9,6 +9,7 @@ from mcp_service.tools.progress_tool import (
     get_active_learning_roadmap,
     mark_roadmap_item_status
 )
+from mcp_service.tools.github_tool import get_github_portfolio
 
 
 def create_mcp_server() -> MCPServer:
@@ -23,6 +24,9 @@ def create_mcp_server() -> MCPServer:
     server.tool()(get_student_performance_summary)
     server.tool()(get_active_learning_roadmap)
     server.tool()(mark_roadmap_item_status)
+
+    # Register GitHub Demonstration Tool
+    server.tool()(get_github_portfolio)
 
     return server
 
