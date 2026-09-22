@@ -5,6 +5,7 @@ _repo_root = str(Path(__file__).resolve().parents[2])
 if _repo_root not in sys.path:
     sys.path.insert(0, _repo_root)
 
+import random
 import streamlit as st
 from app.components.sidebar import render_sidebar
 from app.utils.ui_helpers import get_student_profile_data
@@ -79,15 +80,23 @@ try:
             st.markdown("<div style='height: 1.8rem;'></div>", unsafe_allow_html=True)
             refresh_qs = st.button("🔄 Load New Practice Questions", use_container_width=True)
 
-        if "drill_questions" not in st.session_state or refresh_qs or st.session_state.get("last_domain") != selected_domain:
-            st.session_state["drill_questions"] = practice_svc.get_practice_questions(topic=topic_query, limit=4)
+        def sample_drills():
+            candidates = practice_svc.get_practice_questions(topic=topic_query, limit=50)
+            if candidates:
+                return random.sample(candidates, min(4, len(candidates)))
+            return []
+
+        if refresh_qs:
+            st.session_state["drill_questions"] = sample_drills()
             st.session_state["last_domain"] = selected_domain
-            # Clear radio selection states from previous questions
             for k in list(st.session_state.keys()):
                 if k.startswith("mcq_") or k.startswith("sub_mcq_"):
-                    del st.session_state[k]
-            if refresh_qs:
-                st.toast("Loaded fresh set of practice questions!", icon="🔄")
+                    st.session_state.pop(k, None)
+            st.rerun()
+
+        if "drill_questions" not in st.session_state or st.session_state.get("last_domain") != selected_domain:
+            st.session_state["drill_questions"] = sample_drills()
+            st.session_state["last_domain"] = selected_domain
 
         drill_qs = st.session_state.get("drill_questions", [])
 
