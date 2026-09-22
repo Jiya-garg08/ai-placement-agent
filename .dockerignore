@@ -1,0 +1,46 @@
+# Git
+.git
+.github
+.gitignore
+
+# Python cache & virtual environments
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+ENV/
+*.egg-info/
+dist/
+build/
+
+# Testing & Linting
+.pytest_cache/
+.coverage
+htmlcov/
+tests/
+
+# IDE & Editor files
+.vscode/
+.idea/
+*.swp
+*~
+
+# Temporary & Secret files
+.env
+.env.local
+.env.*.local
+*.pem
+*.key
+*.log
+
+# Databases & Runtime State
+*.db
+*.sqlite3
+data/*.db
+data/*.sqlite3
+data/uploads/*
+!data/uploads/.gitkeep
