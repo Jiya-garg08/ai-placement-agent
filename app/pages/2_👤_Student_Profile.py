@@ -61,15 +61,24 @@ with tab_profile:
         col1, col2 = st.columns(2)
         with col1:
             name_input = st.text_input("Full Name", value=profile["name"])
-            email_input = st.text_input("Email Address", value=profile["email"], disabled=True)
+            email_input = st.text_input("Email Address", value=profile["email"])
             
             ROLE_OPTIONS = [
+                # Engineering & Tech
                 "Software Development Engineer (SDE 1)",
                 "Full Stack Developer",
-                "Data Scientist / Machine Learning Engineer",
-                "Cloud & DevOps Engineer",
                 "Backend Systems Engineer",
-                "Product Engineer"
+                "Cloud & DevOps Engineer",
+                "Data Scientist / Machine Learning Engineer",
+                # Business, Product & Management
+                "Product Manager (APM / PM)",
+                "Data & Business Analyst",
+                "Growth & Digital Marketing Specialist",
+                "Financial Analyst",
+                "UI/UX & Product Designer",
+                "Human Resources / Talent Specialist",
+                "Operations & Supply Chain Manager",
+                "Management Consultant"
             ]
             current_role = profile["target_role"]
             role_idx = ROLE_OPTIONS.index(current_role) if current_role in ROLE_OPTIONS else 0
@@ -95,16 +104,24 @@ with tab_profile:
                 help="Describe your dream placement offer and desired technical focus."
             )
 
-        st.markdown("##### 🛠️ Primary Technical Skills")
+        st.markdown("##### 🛠️ Primary Core Skills & Competencies")
         ALL_SKILLS = [
+            # Technical & CS
             "Python", "Java", "C++", "JavaScript", "TypeScript", "SQL",
             "Data Structures", "Algorithms", "System Design", "Operating Systems",
             "Computer Networks", "Database Management Systems", "FastAPI", "React",
-            "Docker", "Kubernetes", "Git", "Machine Learning"
+            "Docker", "Kubernetes", "Git", "Machine Learning",
+            # Product, Data & Strategy
+            "Product Management", "Roadmapping", "A/B Testing", "User Research", "Agile",
+            "Business Intelligence", "PowerBI", "Tableau", "Excel",
+            # Finance, Marketing, HR & Design
+            "Financial Modeling", "Budgeting", "Valuation",
+            "Digital Marketing", "SEO", "Content Strategy", "Social Media Marketing",
+            "UI/UX Design", "Figma", "Talent Acquisition"
         ]
         curr_skills = [s for s in profile["primary_skills"] if s in ALL_SKILLS]
         selected_skills = st.multiselect(
-            "Select all core skills in your current technical stack:",
+            "Select all core skills in your current skill stack:",
             options=ALL_SKILLS,
             default=curr_skills
         )
@@ -117,6 +134,16 @@ with tab_profile:
                 user_rec = db.query(User).filter_by(id=profile["user_id"]).first()
                 if prof_rec and user_rec:
                     user_rec.name = name_input.strip()
+                    
+                    new_email = email_input.strip().lower()
+                    if new_email and new_email != user_rec.email.lower():
+                        conflict = db.query(User).filter(User.email == new_email, User.id != user_rec.id).first()
+                        if conflict:
+                            st.error(f"Email '{new_email}' is already in use by another candidate.")
+                            db.close()
+                            st.stop()
+                        user_rec.email = new_email
+
                     prof_rec.target_role = target_role
                     prof_rec.target_company_tier = company_tier
                     prof_rec.college = college.strip()
@@ -209,9 +236,18 @@ with tab_new_student:
             "Target Role",
             options=[
                 "Software Development Engineer (SDE 1)",
-                "Data Scientist / Machine Learning Engineer",
+                "Full Stack Developer",
+                "Backend Systems Engineer",
                 "Cloud & DevOps Engineer",
-                "Full Stack Developer"
+                "Data Scientist / Machine Learning Engineer",
+                "Product Manager (APM / PM)",
+                "Data & Business Analyst",
+                "Growth & Digital Marketing Specialist",
+                "Financial Analyst",
+                "UI/UX & Product Designer",
+                "Human Resources / Talent Specialist",
+                "Operations & Supply Chain Manager",
+                "Management Consultant"
             ]
         )
         new_college = st.text_input("College", placeholder="e.g. Indian Institute of Technology")
