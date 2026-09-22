@@ -153,7 +153,23 @@ def seed_demo_candidate(session: Optional[Session] = None) -> StudentProfile:
             strong_skills=["Data Structures", "Algorithms", "Python", "SQL", "Git"],
             weak_skills=["Operating Systems (Concurrency)", "Dynamic Programming"],
             missing_skills=["System Design (Distributed Caching)", "Docker & Microservices"],
-            priority_topics=["Operating Systems", "Dynamic Programming", "System Design"],
+            priority_topics=[
+                {
+                    "topic": "Operating Systems (Concurrency)",
+                    "urgency": "High",
+                    "rationale": "Identified low diagnostic score in process synchronization and thread safety."
+                },
+                {
+                    "topic": "Dynamic Programming",
+                    "urgency": "High",
+                    "rationale": "High-frequency interview topic requiring focused practice on memoization and tabulation."
+                },
+                {
+                    "topic": "System Design (Distributed Caching)",
+                    "urgency": "Medium",
+                    "rationale": "Mandatory architectural requirement listed in target SDE-1 job descriptions."
+                }
+            ],
             overall_readiness_score=78.5
         )
         db.add(skill_gap)
@@ -201,3 +217,7 @@ def seed_demo_candidate(session: Optional[Session] = None) -> StudentProfile:
     finally:
         if owns_session:
             db.close()
+
+
+# Alias for backward and script compatibility
+seed_demo_student = seed_demo_candidate

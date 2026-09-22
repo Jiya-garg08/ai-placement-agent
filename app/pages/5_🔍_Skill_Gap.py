@@ -137,22 +137,30 @@ try:
     st.markdown("### 🎯 Prioritized Remediation Roadmap")
     if gap_record.priority_topics:
         for idx, pt in enumerate(gap_record.priority_topics):
-            urgency = pt.get("urgency", "Medium")
-            u_color = "#ef4444" if urgency == "High" else "#f59e0b"
+            if isinstance(pt, dict):
+                topic_title = pt.get("topic", "Focus Area")
+                urgency = pt.get("urgency", "High" if idx == 0 else "Medium")
+                rationale = pt.get("rationale", "Identified priority area for your target placement role.")
+            else:
+                topic_title = str(pt)
+                urgency = "High" if idx < 2 else "Medium"
+                rationale = f"Core competency in {topic_title} targeted for placement interview readiness."
+
+            u_color = "#ef4444" if urgency.lower() == "high" else "#f59e0b"
             
             st.markdown(
                 f"""
                 <div class="kpi-card" style="margin-bottom: 0.75rem; padding: 0.9rem 1.2rem;">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span style="font-weight: 600; font-size: 1rem; color: #f8fafc;">
-                            #{idx + 1} {pt.get('topic')}
+                            #{idx + 1} {topic_title}
                         </span>
                         <span style="font-size: 0.75rem; font-weight: 700; color: {u_color}; background: rgba(255,255,255,0.06); padding: 0.2rem 0.5rem; border-radius: 4px;">
                             {urgency.upper()} URGENCY
                         </span>
                     </div>
                     <p style="font-size: 0.85rem; color: #cbd5e1; margin: 0.4rem 0 0 0;">
-                        {pt.get('rationale')}
+                        {rationale}
                     </p>
                 </div>
                 """,
