@@ -23,6 +23,7 @@ if not exist ".venv" (
 
 echo [*] Activating virtual environment...
 call .venv\Scripts\activate.bat
+set PYTHONPATH=%cd%;%PYTHONPATH%
 
 :: 4. Environment Configuration
 if not exist ".env" (
