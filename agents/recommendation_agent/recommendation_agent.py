@@ -103,7 +103,7 @@ class NextActionRecommendationAgent:
                     {"role": "system", "content": COACH_SYSTEM_PROMPT},
                     {"role": "user", "content": f"Synthesize concise daily coaching advice for:\n{json.dumps(prompt_payload, indent=2)}"}
                 ],
-                max_completion_tokens=300
+                max_completion_tokens=2000
             )
         except Exception:
             resp = client.chat.completions.create(

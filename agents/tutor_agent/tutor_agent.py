@@ -47,7 +47,7 @@ class RAGTutorAgent:
             answer = self._heuristic_mock_answer(request.query, results, citations)
         else:
             try:
-                answer = self._llm_answer(request.query, grounded_context, request.chat_history, citations)
+                answer = self._llm_answer(request.query, grounded_context, request.chat_history, citations, results)
             except Exception:
                 answer = self._heuristic_mock_answer(request.query, results, citations)
 
@@ -74,7 +74,7 @@ class RAGTutorAgent:
         ]
         return "\n".join(answer_lines)
 
-    def _llm_answer(self, query: str, grounded_context: str, chat_history: list, citations: list) -> str:
+    def _llm_answer(self, query: str, grounded_context: str, chat_history: list, citations: list, results: list = None) -> str:
         """Call Azure OpenAI / Foundry model with strict grounded context."""
         from openai import AzureOpenAI
         client = AzureOpenAI(
@@ -88,15 +88,18 @@ class RAGTutorAgent:
             resp = client.chat.completions.create(
                 model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
                 messages=messages,
-                max_completion_tokens=650
+                max_completion_tokens=3500
             )
         except Exception:
             resp = client.chat.completions.create(
                 model=settings.AZURE_OPENAI_CHAT_DEPLOYMENT,
                 messages=messages,
-                temperature=0.1,
-                max_tokens=650
+                temperature=0.2,
+                max_tokens=1200
             )
         content = resp.choices[0].message.content or ""
+        if not content.strip() and results:
+            return self._heuristic_mock_answer(query, results, citations)
+
         citation_footer = CitationEngine.format_citation_markdown(citations)
         return f"{content}\n{citation_footer}"

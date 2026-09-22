@@ -182,7 +182,7 @@ class PerformanceEvaluationAgent:
                     {"role": "system", "content": EVALUATION_SYSTEM_PROMPT},
                     {"role": "user", "content": f"Provide placement evaluation critique for candidate:\n{user_content}"}
                 ],
-                max_completion_tokens=500
+                max_completion_tokens=2500
             )
         except Exception:
             resp = client.chat.completions.create(
