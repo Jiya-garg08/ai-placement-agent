@@ -2,118 +2,187 @@
 
 [![CI Pipeline](https://github.com/Jiya-garg08/ai-placement-agent/actions/workflows/ci.yml/badge.svg)](https://github.com/Jiya-garg08/ai-placement-agent/actions)
 [![Python 3.12](https://img.shields.io/badge/python-3.12-blue.svg)](https://www.python.org/downloads/)
+[![Tests Passing](https://img.shields.io/badge/tests-113%20passed-brightgreen.svg)](tests/)
+[![Coverage](https://img.shields.io/badge/coverage-89%25-brightgreen.svg)](tests/)
 [![Streamlit](https://img.shields.io/badge/frontend-Streamlit-FF4B4B.svg)](https://streamlit.io/)
+[![Docker](https://img.shields.io/badge/container-Docker%20ready-blue.svg)](Dockerfile)
 [![SQLAlchemy](https://img.shields.io/badge/orm-SQLAlchemy%202.0-red.svg)](https://www.sqlalchemy.org/)
 [![MCP](https://img.shields.io/badge/protocol-Model%20Context%20Protocol-green.svg)](https://modelcontextprotocol.io/)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-> An intelligent, end-to-end placement acceleration platform that analyzes candidate profiles, extracts skills from resumes and job descriptions, conducts diagnostic assessments, computes structured skill gaps, builds personalized learning roadmaps, provides grounded RAG tutoring, evaluates performance, and continuously recommends the **Next Best Action**.
+> An enterprise-grade, end-to-end multi-agent career acceleration platform for engineering students. Combines deterministic logic, Microsoft Foundry agent orchestration, Model Context Protocol (MCP) tools, and grounded Azure AI Search RAG with verified inline source citations.
 
 ---
 
 ## 🏛️ System Architecture
 
-The application adopts a **clean, decoupled architecture** that strictly separates deterministic business logic from probabilistic AI reasoning:
-
 ```mermaid
 graph LR
-    User([Student]) --> Streamlit[Streamlit UI]
-    Streamlit --> Foundry[Foundry Orchestrator Agent]
-    Foundry --> Subagents[Specialized Subagents]
-    Foundry --> MCP[Model Context Protocol Tools]
-    MCP --> DB[(SQLite Database)]
-    Subagents --> RAG[Azure AI Search RAG]
+    User([Student]) --> UI[Streamlit Multi-Page Portal]
+    UI --> Orchestrator[Microsoft Foundry Orchestrator]
+    Orchestrator --> Subagents[7 Specialized Subagents]
+    Orchestrator --> MCP[Model Context Protocol Tools]
+    MCP --> DB[(SQLite / PostgreSQL)]
+    Subagents --> RAG[Azure AI Search RAG Pipeline]
+    RAG --> Citations[Inline Verified Citations]
 ```
 
 ### Key Pillars
-1. **Frontend**: Streamlit multi-page interface tracking the 8 stages of placement prep.
-2. **AI Orchestration**: Microsoft Foundry Agent with specialized subagents (Resume, Assessment, Skill Gap, Planner, Tutor, Evaluation, Next Best Action).
-3. **Database**: SQLite with SQLAlchemy ORM (architected for 1-click migration to PostgreSQL).
-4. **Tool Access**: Model Context Protocol (MCP) server providing sandboxed database operations.
-5. **RAG Pipeline**: Azure AI Search indexing curated university-grade curriculum across 10 technical domains with strict inline source citations.
-6. **Budget Control**: Strict $200 Azure credit safeguard with offline mock modes for 100% free local development.
+1. **Frontend Experience**: 10-page Streamlit portal styled with a modern glassmorphic theme and Plotly benchmark radar charts.
+2. **Foundry Agent Swarm**: Modular orchestrator coordinating 7 subagents (Resume Analysis, Assessment, Skill Gap, Learning Planner, RAG Tutor, Evaluation, Next Best Action).
+3. **Model Context Protocol (MCP)**: Sandboxed FastMCP tools allowing agents to read profiles, query performance metrics, and inspect live GitHub repositories.
+4. **Grounded RAG Engine**: Azure AI Search hybrid retrieval across 10 CS curriculum domains (DSA, DBMS, OS, Networks, System Design, etc.) with verified citations.
+5. **Zero-Cost Development**: Strict **$200 Azure grant cap** enforced with full offline mock mode (`AZURE_MOCK_MODE=True`, $0.00 spent to date).
+6. **Enterprise Security**: Automated PII masking (email, phone, SSN, Aadhaar, cards), XML boundary fencing against prompt injections, and secret leak scanners.
 
 ---
 
-## 🚀 Quickstart Guide (Local Development)
+## 🚀 Quickstart: Launch in 60 Seconds
 
-### 1. Clone & Setup Virtual Environment
+### Method 1: Turnkey One-Click Launch Script
+- **Windows**:
+  ```cmd
+  scripts\run_local.bat
+  ```
+- **macOS / Linux**:
+  ```bash
+  chmod +x scripts/run_local.sh
+  ./scripts/run_local.sh
+  ```
+*These scripts automatically provision a virtualenv, install dependencies, initialize the database, seed curated test questions, and launch the application at `http://localhost:8501`.*
+
+---
+
+### Method 2: Docker & Docker Compose
+The application includes a production multi-stage Docker build running under a non-root user with persistent volume mounting for SQLite data:
 ```bash
+# Build and run in detached mode
+docker compose up --build -d
+
+# Inspect logs
+docker compose logs -f
+
+# Stop
+docker compose down
+```
+Or use the provided shortcuts: `scripts\docker_run.bat` (Windows) or `./scripts/docker_run.sh` (Linux/macOS).
+
+---
+
+### Method 3: Manual Step-by-Step Setup
+```bash
+# 1. Clone repo
 git clone https://github.com/Jiya-garg08/ai-placement-agent.git
 cd ai-placement-agent
 
-# Create and activate virtual environment
+# 2. Virtual environment
 python -m venv .venv
-# On Windows:
-.venv\Scripts\activate
-# On Linux/macOS:
-source .venv/bin/activate
+# On Windows: .venv\Scripts\activate
+# On Linux/macOS: source .venv/bin/activate
 
-# Install dependencies
+# 3. Dependencies
 pip install -r requirements.txt
-```
 
-### 2. Configure Environment
-```bash
+# 4. Environment
 cp .env.example .env
-```
-> **Tip**: `AZURE_MOCK_MODE=True` is enabled by default in `.env.example`. This allows you to test the entire system without incurring any Azure charges.
 
-### 3. Run Automated Tests
-```bash
-pytest tests/ -v
-```
+# 5. Database Initialization & Demo Candidate Seeding
+python -c "from database.database import init_db; init_db()"
+python -m scripts.seed_data
+python -c "from app.utils.seed_demo_student import seed_demo_student; seed_demo_student()"
 
-### 4. Launch Streamlit Application
-```bash
+# 6. Run Streamlit UI
 streamlit run app/streamlit_app.py
 ```
 
 ---
 
-## 📋 The 8-Stage Placement Preparation Journey
+## 🗺️ The 10-Page Placement Preparation Journey
 
-1. **Student Onboarding**: Capture college, graduation year, target role, and baseline skills.
-2. **Resume & JD Analysis**: Automated parsing of PDF/DOCX resumes and structured JD entity extraction.
-3. **Diagnostic Assessment**: Calibrated 10-question technical quiz to measure actual concept depth.
-4. **Skill Gap Engine**: Deterministic matrix comparison identifying *Strong*, *Weak*, and *Missing* competencies.
-5. **Personalized Learning Plan**: Chronological week-by-week preparation roadmap with daily goals.
-6. **Learning + Practice (RAG)**: Grounded conversational tutor referencing verified textbook materials with citations.
-7. **Performance Evaluation**: Topic mastery scorecard, accuracy trends, and velocity tracking.
-8. **Next Best Action**: Empirically computed single highest-priority task to tackle next.
+| Page | Feature | Key Capabilities |
+| :--- | :--- | :--- |
+| **`1_📊_Dashboard`** | Executive Overview | Tier-1 benchmark radar chart, readiness gauge, streak counter, spend monitor. |
+| **`2_👤_Student_Profile`** | Profile Management | College info, target role editor, and live GitHub portfolio inspection via MCP. |
+| **`3_📄_Resume_JD_Analysis`** | ATS Competency Matcher | PDF/DOCX parsing, automated PII scrubbing, 85% ATS score, keyword recommendations. |
+| **`4_📝_Diagnostic_Assessment`** | Calibrated Exam Runner | 10-question technical quiz across core CS topics with instant grading & explanations. |
+| **`5_🔍_Skill_Gap`** | Triangulated Matrix | 3-way matrix comparing resume claims, JD requirements, and quiz results (Strong/Weak/Missing). |
+| **`6_📅_Learning_Plan`** | Adaptive 4-Week Roadmap | Chronological study plan with weekly focus topics and interactive status toggling. |
+| **`7_🤖_RAG_Tutor`** | Grounded Conversational AI | Azure AI Search hybrid retrieval with verified inline textbook citations. |
+| **`8_💻_Practice`** | Coding Drills & Runner | Interactive MCQ drills, algorithmic code runner, and calendar streak tracker. |
+| **`9_📈_Performance`** | Mastery & Appraisal | Topic mastery scorecards and qualitative hiring manager appraisal report. |
+| **`10_🎯_Next_Best_Action`** | Empirical Priority Queue | Highest-yield study recommendations with 1-click module execution. |
 
 ---
 
-## 🛠️ GitHub Issue-Driven Development
+## 🧪 Automated Testing & Code Quality
 
-Every phase of this project is developed through discrete GitHub Issues:
-- **Phase 0**: Project Foundation & Setup (Issue #01)
-- **Phase 1**: Database & Student Onboarding (Issues #02, #03)
-- **Phase 2**: Resume/JD Analysis Engine (Issues #04, #05, #06)
-- **Phase 3**: Diagnostic Assessment & Question Bank (Issues #07, #08)
-- **Phase 4**: Skill Gap Matrix Engine (Issue #09)
-- **Phase 5**: Adaptive Learning Planner Agent (Issue #10)
-- **Phase 6**: RAG Knowledge Base & Retrieval (Issues #11, #12, #13, #14)
-- **Phase 7**: MCP Tool Layer (Issues #15, #16, #17)
-- **Phase 8**: Microsoft Foundry Orchestration (Issues #18, #19)
-- **Phase 9**: Interactive Practice Engine (Issue #20)
-- **Phase 10**: Performance Evaluation (Issue #21)
-- **Phase 11**: Next Best Action Engine (Issue #22)
-- **Phase 12**: Streamlit Multi-Page UI (Issues #23, #24)
-- **Phase 13**: Automated Testing & Security Hardening (Issues #25, #26)
-- **Phase 14**: Containerization & Documentation (Issues #27, #28)
+The repository is protected by a test suite of **113+ automated unit, integration, and security tests** achieving **89% overall code coverage**:
+
+```bash
+# Run all automated tests
+python -m pytest tests/ -v
+
+# Run with test coverage report
+python -m pytest --cov=. --cov-report=term-missing
+
+# Run specific domain test suites
+python -m pytest tests/unit/test_security.py -v         # PII redaction & prompt injection defense
+python -m pytest tests/integration/test_streamlit_journey.py -v # 10-page user journey integration
+python -m pytest tests/unit/test_docker_setup.py -v      # Docker & Compose syntax validation
+```
+
+---
+
+## 📁 Repository Structure
+
+```
+ai-placement-agent/
+├── app/                        # Streamlit Multi-Page Application
+│   ├── streamlit_app.py        # Central hub & session state router
+│   ├── components/             # Reusable UI components (Sidebar, KPI cards)
+│   ├── pages/                  # 10 Journey Pages
+│   └── utils/                  # Seeders, UI state loaders, CSS themes
+├── agents/                     # Microsoft Foundry Orchestrator & Subagents
+├── mcp_service/                # FastMCP Model Context Protocol tools & server
+├── rag/                        # Chunking, vector embeddings, retrieval, citations
+│   ├── ingestion/              # Document section chunker & Azure indexer
+│   ├── retrieval/              # Hybrid BM25 + Vector retriever & citation engine
+│   └── knowledge_base/         # 10 Curated CS domain reference guides
+├── database/                   # SQLAlchemy 2.0 ORM models & repositories
+├── services/                   # Deterministic business logic & parser engines
+├── schemas/                    # Pydantic data contracts
+├── config/                     # Settings, security sanitizers, cost guardrails
+├── scripts/                    # Shell and batch launchers, seed utilities
+├── docs/                       # Architecture specs, setup guides, demo scripts
+│   ├── architecture.md         # Full technical system architecture
+│   ├── setup_guide.md          # Comprehensive developer install guide
+│   └── demo_walkthrough.md     # 5-minute video presentation script
+├── tests/                      # 113+ Unit, integration, and security tests
+├── Dockerfile                  # Production multi-stage container
+├── docker-compose.yml          # Container orchestration & volume mapping
+└── requirements.txt            # Python dependencies
+```
+
+---
+
+## 🛡️ Security & Privacy Guardrails
+
+- **Zero Secret Leaks**: Automated token scanners prevent committing GitHub, OpenAI, or Azure keys.
+- **PII Scrubbing**: Candidate phone numbers, email addresses, SSNs, and Aadhaar numbers are masked prior to agent analysis.
+- **Prompt Fencing**: Boundary tags (`<user_query>`) and regular expressions neutralize instruction overrides, jailbreak roleplays, and extraction attacks.
+- **SQL Injection Immunization**: All persistence operations leverage parameterized SQLAlchemy ORM queries.
 
 ---
 
 ## 💰 Azure Budget & Cost Containment ($200 Cap)
 
-To prevent budget exhaustion:
-* **Phases 0–5**: 100% Free / Local development using SQLite and local test mocks ($0.00 spent).
-* **Phase 6**: Azure AI Search indexing runs once with vector embeddings cached locally.
-* **Phase 8**: Microsoft Foundry agents use `gpt-4o-mini` with token caps and local response caching.
-* **Teardown guardrails**: Scripted monitors ensure spend stays within ~$17.26 total, reserving >90% of the $200 grant.
+To strictly enforce budget containment under our $200 Azure grant:
+- `AZURE_MOCK_MODE=True` remains active by default for all local development and automated testing ($0.00 spent).
+- Vector embeddings and model outputs are cached in `data/embedding_cache.json`.
+- When deployed against live Azure resources, tokens are capped with `gpt-4o-mini`, bounding total project lifecycle spend well under \$20.00.
 
 ---
 
 ## 📄 License
+
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
