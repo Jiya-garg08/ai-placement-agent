@@ -85,7 +85,10 @@ class LearningPlannerAgent:
         items: List[LearningPlanItemSchema] = []
 
         # Extract top priorities from skill_gap
-        priority_topics = [p["topic"] for p in (skill_gap.priority_topics if skill_gap else [])]
+        priority_topics = [
+            p["topic"] if isinstance(p, dict) else str(p)
+            for p in (skill_gap.priority_topics if skill_gap else [])
+        ]
         weak_topics = [w.split(" (")[0] for w in (skill_gap.weak_skills if skill_gap else [])]
         missing_topics = skill_gap.missing_skills if skill_gap else []
 

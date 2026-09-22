@@ -10,6 +10,7 @@ from database.models.practice import PracticeStreak
 from database.models.skill_gap import SkillGap
 from app.utils.seed_demo_student import seed_demo_candidate
 from services.analytics_service import AnalyticsService
+from services.next_action_service import NextActionService
 
 
 def load_custom_css() -> None:

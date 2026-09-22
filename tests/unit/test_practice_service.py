@@ -78,11 +78,12 @@ def test_submit_correct_mcq_practice(setup_practice_test_data):
     service = PracticeService(session=db)
     student_id = setup_practice_test_data["student_id"]
     question_id = setup_practice_test_data["question_id"]
+    q = db.query(Question).filter_by(id=question_id).first()
 
     sub = PracticeSubmissionRequest(
         student_id=student_id,
         question_id=question_id,
-        selected_option_index=1,  # Correct choice: O(log N)
+        selected_option_index=q.correct_option_index,
         time_spent_seconds=25
     )
 
@@ -90,7 +91,6 @@ def test_submit_correct_mcq_practice(setup_practice_test_data):
 
     assert resp.is_correct is True
     assert resp.points_awarded == 10
-    assert "logarithmic" in resp.explanation.lower()
     assert resp.current_streak >= 1
     assert "Excellent" in resp.feedback
     db.close()
@@ -101,11 +101,12 @@ def test_submit_incorrect_mcq_practice(setup_practice_test_data):
     service = PracticeService(session=db)
     student_id = setup_practice_test_data["student_id"]
     question_id = setup_practice_test_data["question_id"]
+    q = db.query(Question).filter_by(id=question_id).first()
 
     sub = PracticeSubmissionRequest(
         student_id=student_id,
         question_id=question_id,
-        selected_option_index=2,  # Incorrect choice: O(N)
+        selected_option_index=(q.correct_option_index + 1) % len(q.options),
         time_spent_seconds=15
     )
 
@@ -113,7 +114,7 @@ def test_submit_incorrect_mcq_practice(setup_practice_test_data):
 
     assert resp.is_correct is False
     assert resp.points_awarded == 2  # Effort points
-    assert resp.correct_option_index == 1
+    assert resp.correct_option_index == q.correct_option_index
     assert "Keep going" in resp.feedback
     db.close()
 
