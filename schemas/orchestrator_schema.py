@@ -16,6 +16,7 @@ class UserIntent(str, Enum):
     PROFILE_MANAGEMENT = "profile_management"
     PORTFOLIO_INSPECTION = "portfolio_inspection"
     PRACTICE_DRILL = "practice_drill"
+    NEXT_BEST_ACTION = "next_best_action"
     GENERAL_CONVERSATION = "general_conversation"
 
 

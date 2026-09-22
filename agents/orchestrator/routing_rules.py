@@ -165,6 +165,16 @@ class IntentRouter:
                 reasoning="Identified skill gap and readiness assessment keywords."
             )
 
+        # 4b. Next Best Action Recommendation
+        next_action_keywords = ["next best action", "what should i do next", "next step", "what to study next", "what to study today", "recommend action", "recommended action", "daily priority", "next action"]
+        if any(kw in lower_msg for kw in next_action_keywords):
+            return IntentClassificationResult(
+                intent=UserIntent.NEXT_BEST_ACTION,
+                confidence=0.93,
+                extracted_params=params,
+                reasoning="Identified request for prioritized next best action recommendation."
+            )
+
         # 5. Roadmap & Preparation Planning
         roadmap_keywords = ["roadmap", "study plan", "learning plan", "curriculum", "preparation schedule", "create plan", "4-week", "study schedule", "learning milestone"]
         if any(kw in lower_msg for kw in roadmap_keywords):
