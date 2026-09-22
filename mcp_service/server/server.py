@@ -4,6 +4,11 @@ except ImportError:
     from mcp.server.fastmcp import FastMCP as MCPServer
 
 from mcp_service.tools.profile_tool import get_student_profile, update_student_target_role
+from mcp_service.tools.progress_tool import (
+    get_student_performance_summary,
+    get_active_learning_roadmap,
+    mark_roadmap_item_status
+)
 
 
 def create_mcp_server() -> MCPServer:
@@ -13,6 +18,11 @@ def create_mcp_server() -> MCPServer:
     # Register Student Profile Tools
     server.tool()(get_student_profile)
     server.tool()(update_student_target_role)
+
+    # Register Performance & Progress Tools
+    server.tool()(get_student_performance_summary)
+    server.tool()(get_active_learning_roadmap)
+    server.tool()(mark_roadmap_item_status)
 
     return server
 
