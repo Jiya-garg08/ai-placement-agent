@@ -146,8 +146,16 @@ try:
             st.session_state["active_exam_id"] = None
             st.rerun()
 
-        st.markdown(f"### ⏱️ {assessment.title}")
-        st.info("Answer each question carefully. Your answers will establish your diagnostic baseline and calibrate your learning roadmap.")
+        col_title, col_cancel = st.columns([0.75, 0.25])
+        with col_title:
+            st.markdown(f"### ⏱️ {assessment.title}")
+        with col_cancel:
+            if st.button("❌ Exit / Recalibrate Exam", use_container_width=True, help="Discard current unsubmitted exam and recalibrate for updated role and skills"):
+                st.session_state["active_exam_id"] = None
+                st.session_state["exam_answers"] = {}
+                st.rerun()
+
+        st.info("Answer each question carefully. Your questions have been calibrated to your target role and skills.")
 
         with st.form("exam_runner_form"):
             user_selections = {}
@@ -227,19 +235,35 @@ try:
     # MODE 3: Start Exam Landing Screen
     # --------------------------------------------------------------------------
     else:
+        target_role = profile["target_role"] if profile else "Software Development Engineer (SDE)"
+        candidate_skills = profile.get("primary_skills", []) if profile else []
+        
+        from database.models.resume import Resume
+        latest_resume = db.query(Resume).filter_by(profile_id=student_id).order_by(Resume.id.desc()).first()
+        resume_skills = latest_resume.extracted_skills if latest_resume else []
+
+        resolved_topics = svc.resolve_topics_for_role_and_skills(target_role, candidate_skills, resume_skills)
+
         st.markdown(
-            """
+            f"""
             <div class="kpi-card" style="padding: 1.5rem; margin-bottom: 1.5rem;">
-                <h3 style="margin-top: 0; color: #f8fafc;">📋 Assessment Overview</h3>
+                <h3 style="margin-top: 0; color: #f8fafc;">📋 Role & Skill-Calibrated Diagnostic Assessment</h3>
                 <p style="color: #cbd5e1; font-size: 0.95rem; line-height: 1.5;">
-                    The Placement Diagnostic Assessment is an adaptive, timed benchmark evaluating your foundational 
-                    and intermediate competencies across <b>Data Structures & Algorithms</b>, <b>DBMS & SQL</b>, 
-                    <b>Operating Systems</b>, <b>Computer Networks</b>, and <b>Programming Languages</b>.
+                    The Placement Diagnostic Assessment dynamically adapts to your target role: 
+                    <b style="color: #38bdf8;">{target_role}</b> and your verified skills.
                 </p>
-                <ul style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6;">
-                    <li><b>Number of Questions:</b> 10 Multiple-Choice Questions</li>
+                <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.35); border-radius: 8px; padding: 0.8rem 1rem; margin: 1rem 0;">
+                    <span style="font-size: 0.8rem; color: #a5b4fc; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700;">
+                        🎯 Calibrated Evaluation Domains:
+                    </span>
+                    <div style="margin-top: 0.3rem; color: #f8fafc; font-weight: 500; font-size: 0.95rem;">
+                        {', '.join(resolved_topics)}
+                    </div>
+                </div>
+                <ul style="color: #94a3b8; font-size: 0.9rem; line-height: 1.6; margin-bottom: 0;">
+                    <li><b>Questions:</b> 10 Multiple-Choice Questions focused specifically on your target domain</li>
                     <li><b>Time Limit:</b> 20 Minutes (recommended pace: ~2 mins/question)</li>
-                    <li><b>Impact:</b> Scores automatically generate your skill gap matrix and 4-week learning roadmap</li>
+                    <li><b>Impact:</b> Evaluates domain strengths and generates your personalized roadmap</li>
                 </ul>
             </div>
             """,
@@ -266,10 +290,21 @@ try:
                     unsafe_allow_html=True
                 )
 
-        target_role = profile["target_role"] if profile else "Software Development Engineer (SDE)"
+        use_ai_generation = st.checkbox(
+            "✨ Generate brand-new custom questions live with Microsoft Foundry (gpt-5-mini)",
+            value=False,
+            help="When checked, calls gpt-5-mini to synthesize 10 novel questions specifically tailored to your role and resume requirements."
+        )
+
         if st.button(f"🚀 Begin Diagnostic Assessment for {target_role}", type="primary", use_container_width=True):
-            with st.spinner("Calibrating 10 domain questions for your target role..."):
-                assessment = svc.create_diagnostic_assessment(target_role, total_questions=10)
+            with st.spinner(f"Calibrating 10 questions tailored to {target_role} and your verified skills..."):
+                assessment = svc.create_diagnostic_assessment(
+                    target_role=target_role,
+                    total_questions=10,
+                    candidate_skills=candidate_skills,
+                    resume_skills=resume_skills,
+                    use_ai_generation=use_ai_generation
+                )
                 st.session_state["active_exam_id"] = assessment.id
                 st.rerun()
 

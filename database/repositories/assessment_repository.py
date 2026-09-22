@@ -16,7 +16,8 @@ class QuestionRepository(BaseRepository[Question]):
         return self.session.query(Question).filter(Question.topic == topic).limit(limit).all()
 
     def sample_questions_for_role(self, topics: List[str], total_count: int = 10) -> List[Question]:
-        """Sample balanced questions randomly across requested topics."""
+        """Sample balanced questions randomly across requested topics, prioritizing role competencies."""
+        from sqlalchemy import or_
         questions = []
         count_per_topic = max(1, total_count // len(topics)) if topics else total_count
 
@@ -26,7 +27,17 @@ class QuestionRepository(BaseRepository[Question]):
             ).order_by(func.random()).limit(count_per_topic).all()
             questions.extend(sampled)
 
-        # If we need more to reach total_count, fill with remaining questions
+        # 1. If we need more to reach total_count, fill first from the requested topics
+        if len(questions) < total_count and topics:
+            existing_ids = [q.id for q in questions]
+            topic_filters = [Question.topic.ilike(f"%{t}%") for t in topics]
+            topic_filler = self.session.query(Question).filter(
+                or_(*topic_filters),
+                ~Question.id.in_(existing_ids) if existing_ids else True
+            ).order_by(func.random()).limit(total_count - len(questions)).all()
+            questions.extend(topic_filler)
+
+        # 2. Only if still fewer than total_count, fill with general placement questions
         if len(questions) < total_count:
             existing_ids = [q.id for q in questions]
             filler = self.session.query(Question).filter(

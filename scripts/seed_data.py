@@ -1,5 +1,12 @@
 """Seed database with curated placement preparation questions across 10 domains."""
 
+import sys
+from pathlib import Path
+
+_repo_root = str(Path(__file__).resolve().parent.parent)
+if _repo_root not in sys.path:
+    sys.path.insert(0, _repo_root)
+
 SEED_QUESTIONS = [
     # 1. DSA
     {
@@ -168,7 +175,7 @@ SEED_QUESTIONS = [
         "difficulty": "Easy"
     },
 
-    # 9. Machine Learning
+    # 9. Machine Learning & AI
     {
         "topic": "Machine Learning",
         "subtopic": "Model Evaluation",
@@ -178,8 +185,153 @@ SEED_QUESTIONS = [
         "explanation": "Recall = TP / (TP + FN). Maximizing recall minimizes False Negatives.",
         "difficulty": "Medium"
     },
+    {
+        "topic": "Machine Learning",
+        "subtopic": "Regularization",
+        "question_text": "What is the primary difference between L1 (Lasso) and L2 (Ridge) regularization in linear models?",
+        "options": [
+            "L1 regularization shrinks weights to zero causing sparse feature selection; L2 shrinks weights toward zero without setting them to zero",
+            "L2 produces sparse models while L1 preserves all coefficients",
+            "L1 is only used in unsupervised learning, while L2 is for supervised learning",
+            "L1 penalizes squared weights, while L2 penalizes absolute weights"
+        ],
+        "correct_option_index": 0,
+        "explanation": "L1 (Lasso) uses absolute weight penalties which drive non-essential coefficients to exact zeros, acting as a feature selector. L2 (Ridge) uses squared penalties which shrink coefficients proportionally.",
+        "difficulty": "Medium"
+    },
+    {
+        "topic": "Machine Learning",
+        "subtopic": "Bias-Variance Tradeoff",
+        "question_text": "A complex model achieves 99.8% training accuracy but drops to 68.2% on cross-validation test data. What is this model exhibiting?",
+        "options": ["High Bias (Underfitting)", "High Variance (Overfitting)", "Low Variance and Low Bias", "Optimal Generalization"],
+        "correct_option_index": 1,
+        "explanation": "A massive gap between high training performance and low validation performance is a hallmark of High Variance (Overfitting).",
+        "difficulty": "Easy"
+    },
+    {
+        "topic": "Machine Learning",
+        "subtopic": "Optimization",
+        "question_text": "In gradient descent optimization, what happens if the learning rate (alpha) is set too high?",
+        "options": [
+            "The model converges monotonically to the global minimum in one step",
+            "The loss will oscillate and may diverge completely without finding a minimum",
+            "Gradient descent turns into stochastic gradient descent",
+            "The weights become sparse and vanish"
+        ],
+        "correct_option_index": 1,
+        "explanation": "A learning rate that is too large overshoots the valley of the cost function, causing divergence or erratic oscillations.",
+        "difficulty": "Easy"
+    },
+    {
+        "topic": "Machine Learning",
+        "subtopic": "Ensemble Methods",
+        "question_text": "How do Random Forests and Gradient Boosted Decision Trees (GBDT) differ in their ensemble strategy?",
+        "options": [
+            "Random Forest trains trees sequentially to correct errors; GBDT trains independent trees in parallel",
+            "Random Forest uses Bagging (parallel bootstrap aggregation); GBDT uses Boosting (sequential residual correction)",
+            "Random Forest is only for classification; GBDT is only for regression",
+            "There is no difference; they are identical algorithms"
+        ],
+        "correct_option_index": 1,
+        "explanation": "Random Forest builds independent trees concurrently (Bagging) to reduce variance. GBDT builds trees sequentially where each new tree fits the residual errors of prior trees (Boosting).",
+        "difficulty": "Hard"
+    },
+    {
+        "topic": "Machine Learning",
+        "subtopic": "Deep Learning Architecture",
+        "question_text": "In Transformer neural network architectures, what is the core mechanism enabling dynamic contextual token relationships?",
+        "options": ["Recurrent LSTM gates", "Multi-Head Scaled Dot-Product Self-Attention", "Convolutional pooling", "Max-Margin separation"],
+        "correct_option_index": 1,
+        "explanation": "Self-attention computes dynamic Query-Key-Value affinities across all input tokens simultaneously regardless of token distance.",
+        "difficulty": "Hard"
+    },
 
-    # 10. Aptitude
+    # 10. Data Science & Python
+    {
+        "topic": "Data Science",
+        "subtopic": "Feature Engineering",
+        "question_text": "Why must feature scaling (e.g. StandardScaler fit) be performed ONLY on training data before transforming test data?",
+        "options": [
+            "To prevent data leakage from the test set into the model training pipeline",
+            "Because test data cannot have mean and variance computed",
+            "It is required by scikit-learn syntax only",
+            "To speed up GPU matrix operations"
+        ],
+        "correct_option_index": 0,
+        "explanation": "Fitting scalers on test data introduces data leakage by exposing unseen distribution parameters (mean, standard deviation) during training.",
+        "difficulty": "Medium"
+    },
+    {
+        "topic": "Data Science",
+        "subtopic": "Imbalanced Datasets",
+        "question_text": "When training a classifier on an imbalanced dataset (99% negative, 1% positive), which technique synthesizes new minority samples?",
+        "options": ["Random Undersampling", "SMOTE (Synthetic Minority Over-sampling Technique)", "PCA Dimensionality Reduction", "One-Hot Encoding"],
+        "correct_option_index": 1,
+        "explanation": "SMOTE interpolates between nearest neighbors of minority class samples to synthesize plausible new feature representations.",
+        "difficulty": "Medium"
+    },
+    {
+        "topic": "Python",
+        "subtopic": "Pandas Indexing",
+        "question_text": "In Python Pandas, what is the primary distinction between `df.loc[]` and `df.iloc[]`?",
+        "options": [
+            "`loc` uses label-based indexing; `iloc` uses 0-based integer position indexing",
+            "`loc` is for columns only; `iloc` is for rows only",
+            "`iloc` supports string column names; `loc` only takes integers",
+            "`loc` modifies the DataFrame in-place; `iloc` creates a copy"
+        ],
+        "correct_option_index": 0,
+        "explanation": "`loc` accesses rows/columns by explicit index/column labels; `iloc` accesses them by integer position indices.",
+        "difficulty": "Easy"
+    },
+
+    # 11. Product Management & Strategy
+    {
+        "topic": "Product Management",
+        "subtopic": "Prioritization",
+        "question_text": "In product roadmap planning, how is the RICE prioritization score computed?",
+        "options": [
+            "Revenue * Impact * Cost / Efficiency",
+            "(Reach * Impact * Confidence) / Effort",
+            "Risk + Investment + Customers - Expense",
+            "Reach / (Impact * Cost * Effort)"
+        ],
+        "correct_option_index": 1,
+        "explanation": "RICE framework calculates score as (Reach * Impact * Confidence) / Effort to objectively rank feature backlogs.",
+        "difficulty": "Easy"
+    },
+    {
+        "topic": "Product Management",
+        "subtopic": "Experimentation",
+        "question_text": "In A/B testing, what does a p-value less than 0.05 typically signify?",
+        "options": [
+            "The test variant is guaranteed to increase revenue by 95%",
+            "There is less than a 5% probability that the observed conversion difference occurred by random chance (Statistically Significant)",
+            "The test had 5% sample size power",
+            "The experiment needs to run for 5 more weeks"
+        ],
+        "correct_option_index": 1,
+        "explanation": "A p-value < 0.05 indicates statistical significance: we reject the null hypothesis with >95% confidence.",
+        "difficulty": "Medium"
+    },
+
+    # 12. Corporate Finance & Strategy
+    {
+        "topic": "Corporate Finance",
+        "subtopic": "Valuation",
+        "question_text": "In a Discounted Cash Flow (DCF) valuation, what impact does an increase in the Weighted Average Cost of Capital (WACC) have on Enterprise Value?",
+        "options": [
+            "Increases Enterprise Value because cost of capital is an asset",
+            "Decreases Enterprise Value because future cash flows are discounted at a higher rate",
+            "Has no effect on Enterprise Value",
+            "Doubles the terminal value"
+        ],
+        "correct_option_index": 1,
+        "explanation": "WACC serves as the discount rate denominator. A higher discount rate reduces the present value of future projected cash flows.",
+        "difficulty": "Medium"
+    },
+
+    # 13. Aptitude
     {
         "topic": "Aptitude & Logical Reasoning",
         "subtopic": "Probability",
@@ -196,10 +348,6 @@ def seed_questions(session):
     """Seed questions into the database if not already populated."""
     from database.models.assessment import Question
 
-    count = session.query(Question).count()
-    if count >= len(SEED_QUESTIONS):
-        return count
-
     added = 0
     for q_data in SEED_QUESTIONS:
         exists = session.query(Question).filter(Question.question_text == q_data["question_text"]).first()
@@ -208,7 +356,7 @@ def seed_questions(session):
             session.add(q)
             added += 1
     session.commit()
-    return added
+    return session.query(Question).count()
 
 
 if __name__ == "__main__":
