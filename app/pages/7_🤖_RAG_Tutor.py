@@ -117,9 +117,9 @@ if active_query:
             
             cit_data = [
                 {
-                    "document_title": c.document_title,
-                    "section": c.section,
-                    "similarity_score": c.similarity_score
+                    "document_title": getattr(c, "document_title", getattr(c, "title", "Curriculum Reference")),
+                    "section": getattr(c, "section", "General"),
+                    "similarity_score": getattr(c, "similarity_score", getattr(c, "relevance_score", 0.95))
                 }
                 for c in response.citations
             ]
