@@ -336,6 +336,53 @@ class FoundryMasterOrchestrator:
                 "Ask tutor for review of tricky concepts"
             ]
 
+        elif intent == UserIntent.PRACTICE_DRILL:
+            delegated_agent = "PracticeService"
+            topic = params.get("topic")
+            from services.practice_service import PracticeService
+            practice_svc = PracticeService()
+
+            snippets = practice_svc.get_coding_snippets(topic=topic)
+            questions = practice_svc.get_practice_questions(topic=topic, limit=2)
+
+            sid = session.student_id or 1
+            streak_summary = practice_svc.get_student_practice_summary(student_id=sid)
+
+            topic_title = topic or "Core Computer Science"
+            response_text = (
+                f"### Interactive Practice & Coding Engine: {topic_title}\n\n"
+                f"- **Current Preparation Streak:** 🔥 **{streak_summary.current_streak} days** (Best: {streak_summary.longest_streak} days)\n"
+                f"- **Problems Solved:** {streak_summary.total_questions_solved} | **Accuracy:** {streak_summary.overall_accuracy}%\n\n"
+            )
+
+            if snippets:
+                s = snippets[0]
+                response_text += (
+                    f"#### Featured Coding Challenge: **{s.title}** ({s.difficulty})\n"
+                    f"{s.problem_statement}\n\n"
+                    f"```python\n{s.code_starter}\n```\n\n"
+                )
+
+            if questions:
+                q = questions[0]
+                response_text += (
+                    f"#### Practice Question:\n"
+                    f"**{q.question_text}**\n"
+                )
+                for i, opt in enumerate(q.options):
+                    response_text += f"- [{i}] {opt}\n"
+
+            suggested_actions = [
+                f"Submit solution for {topic_title}",
+                "Request hint from tutor",
+                "Practice next coding snippet"
+            ]
+            data_payload = {
+                "streak": streak_summary.model_dump(),
+                "snippet_count": len(snippets),
+                "question_count": len(questions)
+            }
+
         elif intent == UserIntent.SKILL_GAP_ANALYSIS:
             delegated_agent = "SkillGapService"
             sid = session.student_id or 1

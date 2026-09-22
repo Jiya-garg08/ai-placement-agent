@@ -117,6 +117,19 @@ class AgentRegistry:
             instance="mcp_github"
         )
 
+        # 8. Interactive Practice Engine
+        from services.practice_service import PracticeService
+        self.register(
+            AgentMetadata(
+                name="PracticeService",
+                role="Interactive Coding & Practice Specialist",
+                description="Serves conceptual interview MCQs, algorithmic coding snippets, and calculates streak telemetry.",
+                supported_intents=[UserIntent.PRACTICE_DRILL],
+                timeout_seconds=8.0
+            ),
+            instance=PracticeService()
+        )
+
     def register(self, metadata: AgentMetadata, instance: Any) -> None:
         """Register a subagent with its metadata and executable instance."""
         self._registry[metadata.name] = {

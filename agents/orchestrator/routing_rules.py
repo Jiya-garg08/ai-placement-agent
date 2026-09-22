@@ -142,6 +142,19 @@ class IntentRouter:
                 reasoning="Identified assessment/diagnostic examination keywords."
             )
 
+        # 3b. Interactive Practice Questions & Coding Drills
+        practice_keywords = ["practice question", "practice problem", "coding question", "solve problem", "coding challenge", "practice mcq", "code snippet", "practice dsa", "coding drill"]
+        if any(kw in lower_msg for kw in practice_keywords) or (lower_msg.startswith("practice") and "plan" not in lower_msg):
+            topic = self._extract_topic(lower_msg)
+            if topic:
+                params["topic"] = topic
+            return IntentClassificationResult(
+                intent=UserIntent.PRACTICE_DRILL,
+                confidence=0.91,
+                extracted_params=params,
+                reasoning="Identified interactive practice or coding drill keywords."
+            )
+
         # 4. Skill Gap Matrix
         skill_gap_keywords = ["skill gap", "missing skill", "weak skill", "strong skill", "readiness index", "gap matrix", "where am i lacking", "what should i improve", "skill deficiency"]
         if any(kw in lower_msg for kw in skill_gap_keywords):
